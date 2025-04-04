@@ -1,0 +1,69 @@
+@page "/dodaj-ocene"
+@using Microsoft.IdentityModel.Tokens
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Models
+@using OcenaPracowniczaLys.Services
+@inject IUserService UserService
+
+<h3>Dodaj Ocenę</h3>
+<div id="main-container">
+    <EditForm class="d-flex flex-column col-3" Model="@_request" OnValidSubmit="HandleEvaluationAdd" FormName="UserLoginForm">
+        <label class="form-label" for="department">Dział</label>
+        <InputRadioGroup id="department" @bind-Value="_request.Department">
+            <div><InputRadio Value="@("Biuro")" /> Biuro</div>
+            <div><InputRadio Value="@("Produkcja")" /> Produkcja/Magazyn</div>
+        </InputRadioGroup>
+        
+        <label class="form-label" for="name">Imię i nazwisko</label>
+        <InputText class="form-control" id="name" @bind-Value="_request.Name" />
+
+        <label class="form-label" for="position">Stanowisko</label>
+        <InputText class="form-control" id="position" @bind-Value="_request.Position" />
+        
+        <label class="form-label" for="position">Przełożony bezpośredni</label>
+        <InputSelect  class="form-select" @bind-Value="@_request.SupervisorId">
+            @if (_supervisors.IsNullOrEmpty())
+            {
+                <option value="-1">Błąd połączenia z bazą danych</option>
+            }
+            else
+            {
+                @foreach (var user in _supervisors)
+                {
+                    <option value="@user.UserId">@user.FullName</option>
+                }
+            }
+        </InputSelect>
+        
+        @if (_request.Department == "Biuro")
+        {
+            
+        }
+        else if (_request.Department == "Produkcja")
+        {
+            
+        }
+        
+        
+        
+        
+        <div>
+            @_request.Department
+        </div>
+        <button type="submit">Dodaj</button>
+    </EditForm>
+</div>
+@code {
+    private AddEvaluationRequest _request = new AddEvaluationRequest();
+    private List<User> _supervisors = new List<User>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _supervisors = await UserService.GetAllSupervisorsAsync();
+    }
+
+    void HandleEvaluationAdd()
+    {
+        
+    }
+}

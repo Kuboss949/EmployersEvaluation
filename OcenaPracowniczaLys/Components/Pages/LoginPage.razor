@@ -1,0 +1,46 @@
+@page "/login"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
+@using OcenaPracowniczaLys.AuthenticationProvider
+@using OcenaPracowniczaLys.Models
+@using OcenaPracowniczaLys.Services
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<div id="main-container">
+    <EditForm Model="@_loginRequest" OnValidSubmit="HandleLogin" FormName="UserLoginForm">
+        <label for="login">Login</label>
+        <InputText id="login" @bind-Value="_loginRequest.Login" />
+
+        <label for="password">Hasło</label>
+        <InputText id="password" @bind-Value="_loginRequest.Password" type="password" />
+        
+        <span class="status-indicator">@_status</span>
+        
+        <button type="submit">Login</button>
+    </EditForm>
+</div>
+
+@code {
+
+    private AppLoginRequest _loginRequest = new AppLoginRequest();
+    private string _status = "";
+    private async Task HandleLogin()
+    {
+        var user = await AuthService.AuthenticateAsync(_loginRequest);
+        if (user != null)
+        {
+            if (AuthenticationStateProvider is AppAuthenticationStateProvider appProvider)
+            {
+                appProvider.MarkUserAsAuthenticated(user);
+                _status = "Zalogowano!";
+                NavigationManager.NavigateTo("/");
+            }
+        }
+        else
+        {
+            _status = "Nieprawidłowe dane logowania.";
+        }
+    }
+}
