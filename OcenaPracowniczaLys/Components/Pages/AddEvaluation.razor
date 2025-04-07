@@ -1,108 +1,223 @@
 @page "/dodaj-ocene"
+@using Microsoft.EntityFrameworkCore.Infrastructure
 @using Microsoft.IdentityModel.Tokens
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Models
 @using OcenaPracowniczaLys.Services
 @using OcenaPracowniczaLys.TextAssets
 @inject IUserService UserService
+@inject IEvaluationService EvaluationService
 @inject IDepartmentService DepartmentService
 
-<h3 class="display-4">Dodaj Ocenę</h3>
-<div class="container min-vh-100 d-flex align-items-center">
-    <div class="row w-100 justify-content-center">
-        <div class="col-md-6">
-            <h3 class="display-4 mb-5">Dodaj Ocenę</h3>
-            <EditForm class="d-flex flex-column  justify-content-center" Model="@_request"
-                      OnValidSubmit="HandleEvaluationAdd" FormName="UserLoginForm">
-                <span class="mt-2">
-                    <label class="form-label" for="main-department">Dział</label>
-                    <InputRadioGroup id="main-department" @bind-Value="_request.MainDepartment">
-                        <div>
-                            <InputRadio class="form-check-label" Value="@("Biuro")"/>
-                            Biuro
-                        </div>
-                        <div>
-                            <InputRadio class="form-check-label" Value="@("Produkcja")"/>
-                            Produkcja/Magazyn
-                        </div>
-                    </InputRadioGroup>
-                </span>
-                <span class="mt-2">
-                    <label class="form-label" for="name">Imię i nazwisko</label>
-                    <InputText class="form-control" id="name" @bind-Value="_request.Name"/>
-                </span>
+@if (_isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Ładowanie...</span>
+        </div>
+        <p>Ładowanie danych, proszę czekać...</p>
+    </div>
+}
+else
+{
+    <div class="container min-vh-100 d-flex align-items-center">
+        <div class="row w-100 justify-content-center">
+            <div class="col-md-6">
+                <h3 class="display-4 mb-5">Dodaj Ocenę</h3>
+                <EditForm class="d-flex flex-column  justify-content-center" Model="@_request"
+                          OnValidSubmit="HandleEvaluationAdd" FormName="UserLoginForm">
+                    <span class="mt-2">
+                        <label class="form-label" for="main-department">Dział</label>
+                        <InputRadioGroup id="main-department" @bind-Value="_request.MainDepartment">
+                            <div>
+                                <InputRadio class="form-check-label" Value="@("Biuro")"/>
+                                Biuro
+                            </div>
+                            <div>
+                                <InputRadio class="form-check-label" Value="@("Produkcja")"/>
+                                Produkcja/Magazyn
+                            </div>
+                        </InputRadioGroup>
+                    </span>
+                    <span class="mt-2">
+                        <label class="form-label" for="name">Imię i nazwisko</label>
+                        <InputText class="form-control" id="name" @bind-Value="_request.Name"/>
+                    </span>
 
-                <span class="mt-2">
-                    <label class="form-label" for="position">Stanowisko</label>
-                    <InputText class="form-control" id="position" @bind-Value="_request.Position"/>
-                </span>
+                    <span class="mt-2">
+                        <label class="form-label" for="position">Stanowisko</label>
+                        <InputText class="form-control" id="position" @bind-Value="_request.Position"/>
+                    </span>
 
 
-                <span class="mt-2">
-                    <label class="form-label" for="supervisor">Przełożony bezpośredni</label>
-                    <InputSelect id="supervisor" class="form-select" @bind-Value="@_request.SupervisorId">
-                        @if (_supervisors.IsNullOrEmpty())
-                        {
-                            <option value="-1">Błąd połączenia z bazą danych</option>
-                        }
-                        else
-                        {
-                            @foreach (var user in _supervisors)
+                    <span class="mt-2">
+                        <label class="form-label" for="supervisor">Przełożony bezpośredni</label>
+                        <InputSelect id="supervisor" class="form-select" @bind-Value="@_request.SupervisorId">
+                            @if (_supervisors.IsNullOrEmpty())
                             {
-                                <option value="@user.UserId">@user.FullName</option>
+                                <option value="-1">Błąd połączenia z bazą danych</option>
                             }
-                        }
-                    </InputSelect>
-                </span>
-
-                <span class="mt-2">
-                    <label class="form-label" for="department">Dział</label>
-                    <InputSelect id="department" class="form-select" @bind-Value="@_request.Department">
-                        @if (_departments.IsNullOrEmpty())
-                        {
-                            <option value="-1">Błąd połączenia z bazą danych</option>
-                        }
-                        else
-                        {
-                            @foreach (var dep in _departments)
+                            else
                             {
-                                @if (dep.UserId.ToString().Equals(_request.SupervisorId))
+                                @foreach (var user in _supervisors)
                                 {
-                                    <option value="@dep.DepartmentId">@dep.DepartmentName</option>
+                                    <option value="@user.UserId">@user.FullName</option>
                                 }
                             }
-                        }
-                    </InputSelect>
-                </span>
-                <span class="mt-5 display-6">@_request.MainDepartment</span>
-                @if (_request.MainDepartment == "Biuro")
-                {
-                    @for (int i = 0; i < _officeQuestions.Count(); i++)
-                    {
-                        <div class="mt-2 d-flex flex-column">
-                            <label class="form-label" for="@($"question{i}")">@_officeQuestions[i]</label>
-                            <InputTextArea id="@($"question{i}")"
-                                           @bind-Value="_request.Questions[i]"></InputTextArea>
-                        </div>
-                    }
-                }
-                else if (_request.MainDepartment == "Produkcja")
-                {
-                    @for (int i = 0; i < _productionQuestions.Count(); i++)
-                    {
-                        <div class="mt-2 d-flex flex-column">
-                            <label class="form-label" for="@($"question{i}")">@_productionQuestions[i]</label>
-                            <InputTextArea id="@($"question{i}")"
-                                           @bind-Value="_request.Questions[i]"></InputTextArea>
-                        </div>
-                    }
-                }
+                        </InputSelect>
+                    </span>
 
-                <button class="mt-5 mb-5" type="submit">Dodaj</button>
-            </EditForm>
+                    <span class="mt-2">
+                        <label class="form-label" for="department">Dział</label>
+                        <InputSelect id="department" class="form-select" @bind-Value="@_request.Department">
+                            @if (_departments.IsNullOrEmpty())
+                            {
+                                <option value="-1">Błąd połączenia z bazą danych</option>
+                            }
+                            else
+                            {
+                                @foreach (var dep in _departments)
+                                {
+                                    @if (dep.UserId.ToString().Equals(_request.SupervisorId))
+                                    {
+                                        <option value="@dep.DepartmentId">@dep.DepartmentName</option>
+                                    }
+                                }
+                            }
+                        </InputSelect>
+                    </span>
+                    <span class="mt-5 mb-3 display-6">@_request.MainDepartment</span>
+                    @if (_request.MainDepartment == "Biuro")
+                    {
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question0")">@_officeQuestions[0]</label>
+                            <InputTextArea id="@($"question0")"
+                                           @bind-Value="_request.Questions[0]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question1")">@_officeQuestions[1]</label>
+                            <InputTextArea id="@($"question1")"
+                                           @bind-Value="_request.Questions[1]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question2")">@_officeQuestions[2]</label>
+                            <InputTextArea id="@($"question2")"
+                                           @bind-Value="_request.Questions[2]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question3")">@_officeQuestions[3]</label>
+                            <InputTextArea id="@($"question3")"
+                                           @bind-Value="_request.Questions[3]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question4")">@_officeQuestions[4]</label>
+                            <InputTextArea id="@($"question4")"
+                                           @bind-Value="_request.Questions[4]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question5")">@_officeQuestions[5]</label>
+                            <InputTextArea id="@($"question5")"
+                                           @bind-Value="_request.Questions[5]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question6")">@_officeQuestions[6]</label>
+                            <InputTextArea id="@($"question6")"
+                                           @bind-Value="_request.Questions[6]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question7")">@_officeQuestions[7]</label>
+                            <InputTextArea id="@($"question7")"
+                                           @bind-Value="_request.Questions[7]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question8")">@_officeQuestions[8]</label>
+                            <InputTextArea id="@($"question8")"
+                                           @bind-Value="_request.Questions[8]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question9")">@_officeQuestions[9]</label>
+                            <InputTextArea id="@($"question9")"
+                                           @bind-Value="_request.Questions[9]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question10")">@_officeQuestions[10]</label>
+                            <InputTextArea id="@($"question10")"
+                                           @bind-Value="_request.Questions[10]">
+                            </InputTextArea>
+                        </div>
+                        @* @for (int i = 0; i < _officeQuestions.Count; i++) *@
+                        @* { *@
+                        @*     <div class="mt-2 d-flex flex-column"> *@
+                        @*         <label class="form-label" for="@($"question{i}")">@_officeQuestions[i]</label> *@
+                        @*         <InputTextArea id="@($"question{i}")" *@
+                        @*                        @bind-Value="_request.Questions[i]"> *@
+                        @*         </InputTextArea> *@
+                        @*     </div> *@
+                        @* } *@
+                    }
+                    else if (_request.MainDepartment == "Produkcja")
+                    {
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question0")">@_productionQuestions[0]</label>
+                            <InputTextArea id="@($"question0")"
+                                           @bind-Value="_request.Questions[0]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question1")">@_productionQuestions[1]</label>
+                            <InputTextArea id="@($"question1")"
+                                           @bind-Value="_request.Questions[1]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question2")">@_productionQuestions[2]</label>
+                            <InputTextArea id="@($"question2")"
+                                           @bind-Value="_request.Questions[2]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question3")">@_productionQuestions[3]</label>
+                            <InputTextArea id="@($"question3")"
+                                           @bind-Value="_request.Questions[3]">
+                            </InputTextArea>
+                        </div>
+                        <div class="mt-2 d-flex flex-column">
+                            <label class="form-label" for="@($"question4")">@_productionQuestions[4]</label>
+                            <InputTextArea id="@($"question4")"
+                                           @bind-Value="_request.Questions[4]">
+                            </InputTextArea>
+                        </div>
+                        @* @for (int i = 0; i < _productionQuestions.Count(); i++) *@
+                        @* { *@
+                        @*     <div class="mt-2 d-flex flex-column" @key="i"> *@
+                        @*         <label class="form-label" for="@($"question{i}")">@_productionQuestions[i]</label> *@
+                        @*         <InputTextArea id="@($"question{i}")" *@
+                        @*                        ValueExpression="@( () => _request.Questions[i] )"> *@
+                        @*         </InputTextArea> *@
+                        @*     </div> *@
+                        @* } *@
+                    }
+
+                    <button class="mt-5 mb-5" type="submit">Dodaj</button>
+                </EditForm>
+                <div class="@_infoClass">
+                    @_infoMessage
+                </div>
+            </div>
         </div>
     </div>
-</div>
+}
+
 
 @code {
     private AddEvaluationRequest _request = new AddEvaluationRequest();
@@ -110,16 +225,39 @@
     private List<Department> _departments = [];
     private readonly List<string> _officeQuestions = QuestionSets.OfficeQuestions;
     private readonly List<string> _productionQuestions = QuestionSets.ProductionQuestions;
+    private string _infoMessage = "";
+    private string _infoClass = "invisible";
+    private bool _isLoading = true;
 
 
     protected override async Task OnInitializedAsync()
     {
         _supervisors = await UserService.GetAllSupervisorsAsync();
         _departments = await DepartmentService.GetAllDepartmentsAsync();
+        _isLoading = false;
     }
 
-    void HandleEvaluationAdd()
+    private async Task HandleEvaluationAdd()
     {
-    }
+        if (!_request.IsFull())
+        {
+            _infoMessage = "Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione";
+            _infoClass = "alert alert-danger";
+            return;
+        }
 
+        OperationResult result;
+        if (_request.MainDepartment == "Biuro")
+        {
+            result = await EvaluationService.AddOfficeEvaluationAsync(_request);
+        }
+        else
+        {
+            result = await EvaluationService.AddProductionEvaluationAsync(_request);
+        }
+
+        _infoClass = result.Status.Equals("Success") ? "alert alert-success" : "alert alert-danger";
+        _infoMessage = result.Message;
+        
+    }
 }

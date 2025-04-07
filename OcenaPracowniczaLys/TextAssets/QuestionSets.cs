@@ -14,7 +14,7 @@ public class QuestionSets
         "Jakie Twoje działania określił(a)byś jako utrudniające uzyskanie dobrych rezultatów?",
         "Nad czym chcesz pracować (jakie elementy zachowania/umiejętności chcesz rozwijać/jakie sobie stawiasz cele)?",
         "Określ sposób i czas monitorowania dążenia do tych celów (kiedy i po czym poznasz, że zostały one zrealizowane):",
-        "Uwagi:"
+        "Uwagi (opcjonalnie):"
     ];
 
     public static List<string> ProductionQuestions =
@@ -23,7 +23,7 @@ public class QuestionSets
         "Jakie twoje działania określił(a)byś jako utrudniające uzyskanie dobrych rezultatów?",
         "Nad czym chcesz pracować (jakie elementy zachowania/umiejętności chcesz rozwijać/jakie sobie stawiasz cele)?",
         "Określ sposób i czas monitorowania dążenia do tych celów (kiedy i po czym poznasz, że zostały one zrealizowane)",
-        "Uwagi:"
+        "Uwagi (opcjonalnie):"
     ];
 
 }
