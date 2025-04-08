@@ -61,4 +61,24 @@ public class EvaluationService : IEvaluationService
         }
         return await _repository.AddProductionEvaluationAsync(data);
     }
+
+    public async Task<List<Evaluationbiuro>> GetAllDirectEvaluationsOfficeAsync(int UserId)
+    {
+        return await _repository.GetAllDirectEvaluationsOfficeAsync(UserId);
+    }
+
+    public async Task<List<Evaluationbiuro>> GetAllIndirectEvaluationsOfficeAsync(int UserId)
+    {
+        return await _repository.GetAllIndirectEvaluationsOfficeAsync(UserId);
+    }
+
+    public async Task<List<Evaluationsprodukcja>> GetAllDirectEvaluationsProductionAsync(int UserId)
+    {
+        return await _repository.GetAllDirectEvaluationsProductionAsync(UserId);
+    }
+
+    public async Task<List<Evaluationsprodukcja>> GetAllIndirectEvaluationsProductionAsync(int UserId)
+    {
+        return await _repository.GetAllIndirectEvaluationsProductionAsync(UserId);
+    }
 }

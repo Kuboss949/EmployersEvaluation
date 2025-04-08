@@ -16,15 +16,24 @@
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="dodaj-ocene" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dodaj Ocenę
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Dodaj Ocenę
             </NavLink>
         </div>
+        <AuthorizeView Roles="owner,user">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="odpowiedzi">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Odpowiedzi
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
         
         <AuthorizeView Roles="admin">
             <Authorized>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="users">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Users
+                    <NavLink class="nav-link" href="admin-panel">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Panel administratora
                     </NavLink>
                 </div>
             </Authorized>
@@ -32,7 +41,7 @@
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Login
+                <span class="bi bi-person-fill" aria-hidden="true"></span> Login
             </NavLink>
         </div>
     </nav>
