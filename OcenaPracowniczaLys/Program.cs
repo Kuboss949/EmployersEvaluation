@@ -14,6 +14,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 
 builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IEvaluationRepository, EvaluationRepository>();
 builder.Services.AddScoped<IEvaluationService, EvaluationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

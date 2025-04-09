@@ -7,9 +7,13 @@ public partial class Department
 {
     public int DepartmentId { get; set; }
 
-    public string DepartmentName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-    public int UserId { get; set; }
+    public bool Enabled { get; set; }
 
-    public int Enabled { get; set; }
+    public int? ManagerId { get; set; }
+
+    public virtual ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
+
+    public virtual User? Manager { get; set; }
 }

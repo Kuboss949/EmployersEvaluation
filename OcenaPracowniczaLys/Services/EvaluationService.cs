@@ -4,9 +4,7 @@ using OcenaPracowniczaLys.Models;
 using OcenaPracowniczaLys.Repository;
 
 namespace OcenaPracowniczaLys.Services;
-/*
- * This class has 2 separate methods, because of previous database structure: TODO fix database structure
- */
+
 public class EvaluationService : IEvaluationService
 {
     private readonly IEvaluationRepository _repository;
@@ -16,69 +14,46 @@ public class EvaluationService : IEvaluationService
         _repository = repository;
     }
 
-    public async Task<OperationResult> AddOfficeEvaluationAsync(AddEvaluationRequest request)
+    public async Task<OperationResult> AddEvaluationAsync(AddEvaluationRequest request)
     {
-        Evaluationbiuro data = new Evaluationbiuro();
-        data.UserName = request.Name;
-        data.Date = DateTime.Now;
-        data.Stanowisko = request.Position;
-        if (request.Department != null) data.DepartmentId = int.Parse(request.Department);
-        if (request.SupervisorId != null) data.UserId = int.Parse(request.SupervisorId);
-        data.EvaluationAnswerId = 0;
-        data.EvaluatorNameId = 2;
-        for (int i = 0; i < 11; i++)
+        Evaluation data = new Evaluation
         {
-            var propertyName = $"Question{i + 1}";
-            var propertyInfo = data.GetType().GetProperty(propertyName);
-            if (propertyInfo != null && propertyInfo.CanWrite)
-            {
-                propertyInfo.SetValue(data, request.Questions[i]);
-            }
-        }
-        return await _repository.AddOfficeEvaluationAsync(data);
+            EmployeeName = request.Name,
+            CreatedAt = DateTime.Now,
+            EmployeePosition = request.Position,
+            MainDepartmentId = request.MainDepartmentID
+        };
         
-    }
-    
-
-    public async Task<OperationResult> AddProductionEvaluationAsync(AddEvaluationRequest request)
-    {
-        Evaluationsprodukcja data = new Evaluationsprodukcja();
-        data.UserName = request.Name;
-        data.Date = DateTime.Now;
-        data.Stanowisko = request.Position;
-        if (request.Department != null) data.DepartmentId = int.Parse(request.Department);
-        if (request.SupervisorId != null) data.UserId = int.Parse(request.SupervisorId);
-        data.EvaluationAnswerId = 0;
-        data.EvaluatorNameId = 2;
-        for (int i = 0; i < 5; i++)
+        if (!string.IsNullOrEmpty(request.Department))
+            data.DepartmentId = int.Parse(request.Department);
+        if (!string.IsNullOrEmpty(request.SupervisorId))
+            data.ManagerId = int.Parse(request.SupervisorId);
+        
+        List<EmployeeAnswer> answers = new List<EmployeeAnswer>();
+        
+        foreach (var entry in request.Answers)
         {
-            var propertyName = $"Question{i + 1}";
-            var propertyInfo = data.GetType().GetProperty(propertyName);
-            if (propertyInfo != null && propertyInfo.CanWrite)
+            EmployeeAnswer answer = new EmployeeAnswer
             {
-                propertyInfo.SetValue(data, request.Questions[i]);
-            }
+                AnswerText = entry.Answer,
+                QuestionId = entry.QuestionId
+            };
+            answers.Add(answer);
         }
-        return await _repository.AddProductionEvaluationAsync(data);
+        data.EmployeeAnswers = answers;
+        
+        return await _repository.AddEvaluationAsync(data);
     }
 
-    public async Task<List<Evaluationbiuro>> GetAllDirectEvaluationsOfficeAsync(int UserId)
+    public async Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId)
     {
-        return await _repository.GetAllDirectEvaluationsOfficeAsync(UserId);
+        return await _repository.GetAllDirectEvaluationsAsync(UserId);
     }
 
-    public async Task<List<Evaluationbiuro>> GetAllIndirectEvaluationsOfficeAsync(int UserId)
+    public async Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int UserId)
     {
-        return await _repository.GetAllIndirectEvaluationsOfficeAsync(UserId);
+        return await _repository.GetAllIndirectEvaluationsAsync(UserId);
     }
 
-    public async Task<List<Evaluationsprodukcja>> GetAllDirectEvaluationsProductionAsync(int UserId)
-    {
-        return await _repository.GetAllDirectEvaluationsProductionAsync(UserId);
-    }
-
-    public async Task<List<Evaluationsprodukcja>> GetAllIndirectEvaluationsProductionAsync(int UserId)
-    {
-        return await _repository.GetAllIndirectEvaluationsProductionAsync(UserId);
-    }
+    
 }

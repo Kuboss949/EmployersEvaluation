@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider AuthProvider
 @inject IEvaluationService EvaluationService
 @inject IDepartmentService DepartamentService
+@inject IQuestionService QuestionService
 <div class="container-fluid min-vh-100 d-flex">
     <div class="row w-100">
         <div class="col-md-3">
@@ -29,34 +30,22 @@
                 <li class="list-group-item">
                     Bezpośrednio
                     <ul class="list-group mt-2">
-                        @foreach (var ev in FilteredDirectOfficeAnswers)
+                        @foreach (var ev in FilteredDirectAnswers)
                         {
                             <li @onclick="@(() => ChangeSelectedAnswerId(ev.EvaluationId))" 
                                 class="list-group-item @( _selectedAnswerId == ev.EvaluationId ? "active" : "" )"
-                                >@ev.UserName @ev.Date.Year</li>
-                        }
-                        @foreach (var ev in FilteredDirectProductionAnswers)
-                        {
-                            <li @onclick="@(() => ChangeSelectedAnswerId(ev.EvaluationId))" 
-                                class="list-group-item @( _selectedAnswerId == ev.EvaluationId ? "active" : "" )"
-                            >@ev.UserName @ev.Date.Year</li>
+                                >@ev.EmployeeName @ev.CreatedAt.Year</li>
                         }
                     </ul>
                 </li>
                 <li class="list-group-item">
                     Pośrednio
                     <ul class="list-group mt-2">
-                        @foreach (var ev in FilteredIndirectOfficeAnswers)
+                        @foreach (var ev in FilteredIndirectAnswers)
                         {
                             <li @onclick="@(() => ChangeSelectedAnswerId(ev.EvaluationId))" 
                                 class="list-group-item @( _selectedAnswerId == ev.EvaluationId ? "active" : "" )"
-                            >@ev.UserName @ev.Date.Year</li>
-                        }
-                        @foreach (var ev in FilteredIndirectProductionAnswers)
-                        {
-                            <li @onclick="@(() => ChangeSelectedAnswerId(ev.EvaluationId))" 
-                                class="list-group-item @( _selectedAnswerId == ev.EvaluationId ? "active" : "" )"
-                            >@ev.UserName @ev.Date.Year</li>
+                            >@ev.EmployeeName @ev.CreatedAt.Year</li>
                         }
                     </ul>
                 </li>
@@ -65,7 +54,7 @@
         <div class="col-md-9">
             <button class="btn btn-primary" @onclick="PrintFragment">Drukuj fragment</button>
             <div id="printArea">
-            @if (_selectedAnswerId != -1 && _selectedAnswerBiuro != null)
+            @if (_selectedAnswerId != -1 && _selectedAnswer != null)
             {
                 <div class="d-flex">
                 <div class="answer-part card mt-3 col-md-4">
@@ -73,7 +62,7 @@
                         Dział
                     </div>
                     <div class="answer-part-value card-body">
-                        @_departments.FirstOrDefault(d => d.DepartmentId == _selectedAnswerBiuro.DepartmentId)?.DepartmentName
+                        @_selectedAnswer.Department.Name
                     </div>
                 </div>
                 <div class="answer-part card mt-3 col-md-4">
@@ -81,7 +70,7 @@
                         Imię i nazwisko
                     </div>
                     <div class="answer-part-value card-body">
-                        @_selectedAnswerBiuro.UserName
+                        @_selectedAnswer.EmployeeName
                     </div>
                 </div>
                 <div class="answer-part card mt-3 col-md-4">
@@ -89,18 +78,18 @@
                         Stanowisko
                     </div>
                     <div class="answer-part-value card-body">
-                        @_selectedAnswerBiuro.Stanowisko
+                        @_selectedAnswer.EmployeePosition
                     </div>
                 </div>
                 </div>
-                @for (int i = 0; i < 11; i++)
+                @foreach(var answer in _selectedAnswer.EmployeeAnswers)
                 {
                     <div class="answer-part card  mt-3">
                         <div class="bg-warning answer-part-name card-header fw-bold">
-                            @QuestionSets.OfficeQuestions[i]
+                            @answer.Question.QuestionText
                         </div>
                         <div class="answer-part-value card-body">
-                            @_selectedAnswerBiuro.GetType().GetProperty($"Question{i + 1}")?.GetValue(_selectedAnswerBiuro)
+                            @answer.AnswerText
                         </div>
                     </div>
                 }
@@ -112,71 +101,34 @@
 
 @code {
     private int _userId = 0;
-    private List<Evaluationbiuro> _directOfficeAnswers = [];
-    private List<Evaluationbiuro> _indirectOfficeAnswers = [];
-    private List<Evaluationsprodukcja> _directProductionAnswers = [];
-    private List<Evaluationsprodukcja> _indirectProductionAnswers = [];
-    private List<Department> _departments = [];
+    private List<Evaluation> _directAnswers = [];
+    private List<Evaluation> _indirectAnswers = [];
     private string _filterName = "";
     private string _filterYear = "-1";
     private int _selectedAnswerId = -1;
-
-    private Evaluationbiuro? _selectedAnswerBiuro = null;
-
-    private Evaluationsprodukcja? _selectedAnswerProdukcja = null;
+    private Evaluation? _selectedAnswer = null;
     
-    private IEnumerable<Evaluationbiuro> FilteredDirectOfficeAnswers =>
-        _directOfficeAnswers.Where(e =>
+    private IEnumerable<Evaluation> FilteredDirectAnswers =>
+        _directAnswers.Where(e =>
             (string.IsNullOrWhiteSpace(_filterName) || 
-             (e.UserName != null &&
-              e.UserName.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0))
+             (e.ManagerId != null &&
+              e.EmployeeName.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0))
             &&
             (string.IsNullOrWhiteSpace(_filterYear) || _filterYear == "-1" ||
-             e.Date.Year.ToString() == _filterYear)
+             e.CreatedAt.Year.ToString() == _filterYear)
             );
 
-    private IEnumerable<Evaluationsprodukcja> FilteredDirectProductionAnswers =>
-        _directProductionAnswers.Where(e =>
+    private IEnumerable<Evaluation> FilteredIndirectAnswers =>
+        _indirectAnswers.Where(e =>
             (string.IsNullOrWhiteSpace(_filterName) || 
-             (e.UserName != null &&
-              e.UserName.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0))
+             (e.ManagerId != null &&
+              e.EmployeeName.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0))
             &&
             (string.IsNullOrWhiteSpace(_filterYear) || _filterYear == "-1" ||
-             e.Date.Year.ToString() == _filterYear)
+             e.CreatedAt.Year.ToString() == _filterYear)
         );
 
-    private IEnumerable<Evaluationbiuro> FilteredIndirectOfficeAnswers =>
-        _indirectOfficeAnswers.Where(e =>
-            (string.IsNullOrWhiteSpace(_filterName) || 
-             (e.UserName != null &&
-              e.UserName.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0))
-            &&
-            (string.IsNullOrWhiteSpace(_filterYear) || _filterYear == "-1" ||
-             e.Date.Year.ToString() == _filterYear)
-        );
-
-    private IEnumerable<Evaluationsprodukcja> FilteredIndirectProductionAnswers =>
-        _indirectProductionAnswers.Where(e =>
-            (string.IsNullOrWhiteSpace(_filterName) || 
-             (e.UserName != null &&
-              e.UserName.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0))
-            &&
-            (string.IsNullOrWhiteSpace(_filterYear) || _filterYear == "-1" ||
-             e.Date.Year.ToString() == _filterYear)
-        );
     
-    private IEnumerable<T> FilterEvaluations<T>(IEnumerable<T> evaluations, Func<T, string?> selector)
-    {
-        // Jeśli filtr jest pusty, zwracamy całą listę
-        if (string.IsNullOrWhiteSpace(_filterName))
-        {
-            return evaluations;
-        }
-        // Przefiltrowujemy listę, sprawdzając czy wynik selekcji zawiera _filterName
-        return evaluations.Where(e =>
-            !string.IsNullOrWhiteSpace(selector(e)) &&
-            selector(e)!.IndexOf(_filterName, StringComparison.OrdinalIgnoreCase) >= 0);
-    }
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();
@@ -187,21 +139,16 @@
             _userId = int.Parse(userIdClaim.Value);
         }
 
-        _directOfficeAnswers = await EvaluationService.GetAllDirectEvaluationsOfficeAsync(_userId);
-        _indirectOfficeAnswers = await EvaluationService.GetAllIndirectEvaluationsOfficeAsync(_userId);
-        _directProductionAnswers = await EvaluationService.GetAllDirectEvaluationsProductionAsync(_userId);
-        _indirectProductionAnswers = await EvaluationService.GetAllIndirectEvaluationsProductionAsync(_userId);
-        _departments = await DepartamentService.GetAllDepartmentsAsync();
+        _directAnswers = await EvaluationService.GetAllDirectEvaluationsAsync(_userId);
+        _indirectAnswers = await EvaluationService.GetAllIndirectEvaluationsAsync(_userId);
 
     }
 
     private void ChangeSelectedAnswerId(int id)
     {
         _selectedAnswerId = id;
-        _selectedAnswerBiuro = _directOfficeAnswers.FirstOrDefault(e => e.EvaluationId == _selectedAnswerId)
-                               ?? _indirectOfficeAnswers.FirstOrDefault(e => e.EvaluationId == _selectedAnswerId);
-        _selectedAnswerProdukcja = _directProductionAnswers.FirstOrDefault(e => e.EvaluationId == _selectedAnswerId)
-                                   ?? _indirectProductionAnswers.FirstOrDefault(e => e.EvaluationId == _selectedAnswerId);
+        _selectedAnswer = _directAnswers.FirstOrDefault(e => e.EvaluationId == _selectedAnswerId)
+                               ?? _indirectAnswers.FirstOrDefault(e => e.EvaluationId == _selectedAnswerId);
     }
     [Inject] IJSRuntime JS { get; set; } = default!;
 

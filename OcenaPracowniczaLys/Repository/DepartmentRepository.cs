@@ -17,4 +17,9 @@ public class DepartmentRepository : IDepartmentRepository
     {
         return await _context.Departments.ToListAsync();
     }
+    
+    public async Task<List<MainDepartment>> GetAllMainDepartmentsAsync()
+    {
+        return await _context.MainDepartments.ToListAsync();
+    }
 }

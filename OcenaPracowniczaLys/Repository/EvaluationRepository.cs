@@ -13,60 +13,39 @@ public class EvaluationRepository : IEvaluationRepository
     {
         _context = context;
     }
-
-    public async Task<OperationResult> AddOfficeEvaluationAsync(Evaluationbiuro data)
+    public async Task<OperationResult> AddEvaluationAsync(Evaluation data)
     {
         var result = new OperationResult();
-        _context.Evaluationbiuros.Add(data);
+        _context.Evaluations.Add(data);
+        
         int status = await _context.SaveChangesAsync();
+        
         result.Status = status > 0 ? "Success" : "Failed";
-        result.Message = status > 0 ? "Opinia została przesłana! Dziękujemy!" : 
-            "Oops! Coś poszło nie tak. Zapisz swoje odpowiedzi i skontaktuj się z działem IT";
+        result.Message = status > 0 
+            ? "Opinia została przesłana! Dziękujemy!" 
+            : "Oops! Coś poszło nie tak. Zapisz swoje odpowiedzi i skontaktuj się z działem IT";
+    
         return result;
     }
+    
 
-    public async Task<OperationResult> AddProductionEvaluationAsync(Evaluationsprodukcja data)
+    public async Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId)
     {
-        var result = new OperationResult();
-        _context.Evaluationsprodukcjas.Add(data);
-        int status = await _context.SaveChangesAsync();
-        result.Status = status > 0 ? "Success" : "Failed";
-        result.Message = status > 0 ? "Opinia została przesłana! Dziękujemy!" : 
-            "Oops! Coś poszło nie tak. Zapisz swoje odpowiedzi i skontaktuj się z działem IT";
-        return result;
+        return await _context.Evaluations
+            .Include(e => e.EmployeeAnswers).ThenInclude(answer => answer.Question)
+            .Include(e => e.Department)
+            .Where(e => e.ManagerId == UserId).ToListAsync();
     }
 
-    public async Task<List<Evaluationbiuro>> GetAllDirectEvaluationsOfficeAsync(int UserId)
+    public async Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int UserId)
     {
-        return await _context.Evaluationbiuros.Where(e => e.UserId == UserId).ToListAsync();
-    }
-
-    public async Task<List<Evaluationbiuro>> GetAllIndirectEvaluationsOfficeAsync(int UserId)
-    {
-        // var subordinates = await _context.Users.Where(u=>u.ManagerId == UserId)
-        //     .ToListAsync();
-        // var subordinateIDs = subordinates.Select(u=>u.UserId).ToList();
-        // return await _context.Evaluationbiuros.Where(e => subordinateIDs.Contains(e.UserId)).ToListAsync();
-        return await _context.Evaluationbiuros
+        return await _context.Evaluations
+            .Include(e => e.EmployeeAnswers).ThenInclude(answer => answer.Question)
+            .Include(e => e.Department)
             .Where(e => _context.Users
                 .Where(u => u.ManagerId == UserId)
                 .Select(u => u.UserId)
-                .Contains(e.UserId))
-            .ToListAsync();
-    }
-
-    public async Task<List<Evaluationsprodukcja>> GetAllDirectEvaluationsProductionAsync(int UserId)
-    {
-        return await _context.Evaluationsprodukcjas.Where(e => e.UserId == UserId).ToListAsync();
-    }
-
-    public async Task<List<Evaluationsprodukcja>> GetAllIndirectEvaluationsProductionAsync(int UserId)
-    {
-        return await _context.Evaluationsprodukcjas
-            .Where(e => _context.Users
-                .Where(u => u.ManagerId == UserId)
-                .Select(u => u.UserId)
-                .Contains(e.UserId))
+                .Contains(e.ManagerId))
             .ToListAsync();
     }
 }

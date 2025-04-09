@@ -28,7 +28,7 @@ public class AppAuthenticationStateProvider : AuthenticationStateProvider
         {
             new Claim(ClaimTypes.Name, user.FullName),
             new Claim("UserId", user.UserId.ToString()),
-            new Claim(ClaimTypes.Role, user.Role == null ? "user" : user.Role.RoleName),
+            new Claim(ClaimTypes.Role, user.Role == null ? "user" : user.Role.Name),
         }, "Custom authentication");
 
         _user = new ClaimsPrincipal(identity);
