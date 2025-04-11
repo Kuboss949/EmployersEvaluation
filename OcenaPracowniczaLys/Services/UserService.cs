@@ -1,4 +1,5 @@
 using OcenaPracowniczaLys.Data;
+using OcenaPracowniczaLys.Models;
 using OcenaPracowniczaLys.Repository;
 
 namespace OcenaPracowniczaLys.Services;
@@ -20,5 +21,31 @@ public class UserService : IUserService
     public async Task<List<User>> GetAllSupervisorsAsync()
     {
         return await _userRepository.GetAllSupervisorsAsync();
+    }
+
+    public async Task<OperationResult> AddUserAsync(AddUserRequest user)
+    {
+        User newUser = new User
+        {
+            FullName = user.FullName,
+            Login = user.Login,
+            Password = BCrypt.Net.BCrypt.HashPassword(user.Password),
+            ManagerId = user.ManagerId,
+            RoleId = user.RoleId,
+            Enabled = true
+        };
+        
+        return await _userRepository.AddUserAsync(newUser);
+    }
+
+    public async Task<OperationResult> ToggleEnableStatusAsync(int userId)
+    {
+        return await _userRepository.ToggleEnableStatusAsync(userId);
+    }
+
+    public async Task<OperationResult> ChangePasswordAdminAsync(int userId, string newPassword)
+    {
+        newPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        return await _userRepository.ChangePasswordAdminAsync(userId, newPassword);
     }
 }

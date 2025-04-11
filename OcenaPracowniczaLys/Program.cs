@@ -1,3 +1,4 @@
+using Blazored.Modal;
 using Microsoft.AspNetCore.Components.Authorization;
 using OcenaPracowniczaLys.AuthenticationProvider;
 using OcenaPracowniczaLys.Components;
@@ -14,6 +15,9 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 
 builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddBlazoredModal();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IEvaluationRepository, EvaluationRepository>();
