@@ -1,3 +1,6 @@
 .admin-table{
     height: 35vh;
 }
+.my-sticky-top{
+    z-index: 10;
+}

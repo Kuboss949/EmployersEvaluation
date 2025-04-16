@@ -139,7 +139,7 @@ else
         _supervisors = await UserService.GetAllSupervisorsAsync();
         _departments = await DepartmentService.GetAllDepartmentsAsync();
         _isLoading = false;
-        _questions = await QuestionService.GetQuestionsAsync();
+        _questions = await QuestionService.GetEnabledQuestionsAsync();
         _mainDepartments = await DepartmentService.GetAllMainDepartmentsAsync();
 
     }

@@ -1,0 +1,47 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.IdentityModel.Tokens
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Models
+@using OcenaPracowniczaLys.Services
+@inject IQuestionService QuestionService
+
+
+<EditForm Model="@_model" OnValidSubmit="HandleChangeManager" FormName="UserChangePasswordForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <span class="mt-2">
+        <label class="form-label" for="prio">Priorytet (im niższy tym pytanie pojawi się wyżej)</label>
+        <InputNumber class="form-control" id="prio" @bind-Value="_model.Priority"/>
+    </span>
+
+    <button class="btn btn-primary mt-3" type="submit">Zmień</button>
+    @if (!string.IsNullOrEmpty(_infoMessage))
+    {
+        <div class="@_infoClass mt-3">
+            @_infoMessage
+        </div>
+    }
+</EditForm>
+@code {
+    public class ChangePriorityModel
+    {
+        [Required(ErrorMessage = "Pole jest wymagane")]
+        [Range(1, int.MaxValue, ErrorMessage = "Priorytet musi być większy od 0")]
+        public int Priority { get; set; }
+    }
+    [Parameter] public int QuestionId { get; set; }
+    private ChangePriorityModel _model = new();
+    private string _infoMessage = "";
+    private string _infoClass = "invisible";
+
+    private async Task HandleChangeManager()
+    {
+        OperationResult result = await QuestionService.ChangeQuestionPriorityAsync(QuestionId, _model.Priority);
+
+        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
+            ? "alert alert-success" : "alert alert-danger";
+        _infoMessage = result.Message;
+    }
+
+}

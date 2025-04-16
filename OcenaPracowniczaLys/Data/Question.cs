@@ -10,6 +10,9 @@ public partial class Question
     public int MainDepartmentId { get; set; }
 
     public string QuestionText { get; set; } = null!;
+    
+    public bool? Enabled { get; set; }
+    public int? Priority { get; set; }
 
     public virtual ICollection<EmployeeAnswer> EmployeeAnswers { get; set; } = new List<EmployeeAnswer>();
 

@@ -1,0 +1,76 @@
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using OcenaPracowniczaLys.Components.Popups
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Services
+@inject IDepartmentService DepartmentService
+@inject IQuestionService QuestionService
+
+<div class="panel-fragment">
+    <div class="w-100 d-flex justify-content-center align-content-center">
+        <span class="display-5">Pytania</span>
+    </div>
+    <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
+        <table class="table table-striped">
+            <thead>
+            <tr class="sticky-top my-sticky-top bg-white">
+                <th scope="col">ID</th>
+                <th scope="col">Dział</th>
+                <th scope="col">Priorytet</th>
+                <th scope="col">Pytanie</th>
+                <th scope="col">Aktywny</th>
+                <th scope="col">Dezaktywuj</th>
+                <th scope="col">Zmiana priorytetu</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var q in Questions)
+            {
+                <tr>
+                    <th scope="row">@q.QuestionId</th>
+                    <td>@q.MainDepartment.Name</td>
+                    <td>@q.Priority</td>
+                    <td>@q.QuestionText</td>
+                    <td>@q.Enabled</td>
+                    <td class="align-content-center">
+                        <button class="btn btn-danger" @onclick="@(() => ToggleQuestionEnableStatus(q.QuestionId))">
+                            <i class="bi bi-power"></i>
+                        </button>
+                    </td>
+                    <td class="align-content-center">
+                        <button class="btn btn-primary" 
+                                @onclick="@(() => ShowChangeQuestionPriorityForm(q.QuestionId))">
+                            <i class="bi bi-gear-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddQuestionForm">Dodaj</button>
+</div>
+
+@code {
+    [Parameter] public required List<Question> Questions { get; set; }
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    void ShowAddQuestionForm()
+    {
+        Modal.Show<AddQuestionPopup>("Dodaj pytanie");
+    }
+
+    void ToggleQuestionEnableStatus(int depId)
+    {
+        QuestionService.ToggleEnabledQuestionAsync(depId);
+    }
+    
+    void ShowChangeQuestionPriorityForm(int questionId)
+    {
+        var parameters = new ModalParameters()
+            .Add(nameof(ChangeQuestionPriorityPopup.QuestionId), questionId);
+        Modal.Show<ChangeQuestionPriorityPopup>("Zmień priorytet pytania", parameters);
+    }
+    
+
+}
