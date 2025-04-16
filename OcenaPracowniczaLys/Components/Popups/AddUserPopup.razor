@@ -6,56 +6,59 @@
 @inject IModalService Modal
 @inject IUserService UserService
 @inject IRoleService RoleService
-    <EditForm class="d-flex flex-column  justify-content-center" Model="@_request"
+<EditForm class="d-flex flex-column  justify-content-center" Model="@_request"
           OnValidSubmit="HandleUserAdd" FormName="UserAddForm">
-        <span class="mt-2">
-            <label class="form-label" for="name">Imię i nazwisko</label>
-            <InputText class="form-control" id="name" @bind-Value="_request.FullName"/>
-        </span>
-        <span class="mt-2">
-            <label class="form-label" for="login">Login</label>
-            <InputText class="form-control" id="login" @bind-Value="_request.Login"/>
-        </span>
-        <span class="mt-2">
-            <label class="form-label" for="password">Hasło</label>
-            <InputText class="form-control" id="password" @bind-Value="_request.Password"/>
-        </span>
-        <span class="mt-2">
-            <label class="form-label" for="role">Rola</label>
-            <InputSelect id="role" class="form-select" @bind-Value="@_request.RoleId">
-                @if (_roles.IsNullOrEmpty())
+    <DataAnnotationsValidator />
+    
+    <span class="mt-2">
+        <label class="form-label" for="name">Imię i nazwisko</label>
+        <InputText class="form-control" id="name" @bind-Value="_request.FullName"/>
+    </span>
+    <span class="mt-2">
+        <label class="form-label" for="login">Login</label>
+        <InputText class="form-control" id="login" @bind-Value="_request.Login"/>
+    </span>
+    <span class="mt-2">
+        <label class="form-label" for="password">Hasło</label>
+        <InputText class="form-control" id="password" @bind-Value="_request.Password"/>
+    </span>
+    <span class="mt-2">
+        <label class="form-label" for="role">Rola</label>
+        <InputSelect id="role" class="form-select" @bind-Value="@_request.RoleId">
+            @if (_roles.IsNullOrEmpty())
+            {
+                <option value="-1">Błąd połączenia z bazą danych</option>
+            }
+            else
+            {
+                <option value="">Wybierz Role</option>
+                @foreach (var e in _roles)
                 {
-                    <option value="-1">Błąd połączenia z bazą danych</option>
+                    <option value="@e.RoleId">@e.Name</option>
                 }
-                else
+            }
+        </InputSelect>
+    </span>
+    <span class="mt-2">
+        <label class="form-label" for="role">Manager</label>
+        <InputSelect id="role" class="form-select" @bind-Value="@_request.ManagerId">
+            @if (_users.IsNullOrEmpty())
+            {
+                <option value="-1">Błąd połączenia z bazą danych</option>
+            }
+            else
+            {
+                <option value="">Brak</option>
+                @foreach (var e in _users)
                 {
-                    <option value="">Wybierz Role</option>
-                    @foreach (var e in _roles)
-                    {
-                        <option value="@e.RoleId">@e.Name</option>
-                    }
+                    <option value="@e.UserId">@e.FullName</option>
                 }
-            </InputSelect>
-        </span>
-        <span class="mt-2">
-            <label class="form-label" for="role">Manager</label>
-            <InputSelect id="role" class="form-select" @bind-Value="@_request.ManagerId">
-                @if (_users.IsNullOrEmpty())
-                {
-                    <option value="-1">Błąd połączenia z bazą danych</option>
-                }
-                else
-                {
-                    <option value="">Brak</option>
-                    @foreach (var e in _users)
-                    {
-                        <option value="@e.UserId">@e.FullName</option>
-                    }
-                }
-            </InputSelect>
-        </span>
-        <button class="mt-5 mb-5" type="submit">Dodaj</button>
-        </EditForm>
+            }
+        </InputSelect>
+    </span>
+    <ValidationSummary />
+    <button class="mt-5 mb-5" type="submit">Dodaj</button>
+</EditForm>
         <div class="@_infoClass">
             @_infoMessage
         </div>
@@ -64,6 +67,7 @@
     private AddUserRequest _request = new AddUserRequest();
     private List<Role> _roles = [];
     private List<User> _users = [];
+    private List<Department> _departments = [];
     private string _infoMessage = "";
     private string _infoClass = "invisible";
     

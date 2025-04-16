@@ -1,0 +1,72 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.IdentityModel.Tokens
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Models
+@using OcenaPracowniczaLys.Services
+@inject IDepartmentService DepartmentService
+@inject IUserService UserService
+
+
+<EditForm Model="@_changeManagerModel" OnValidSubmit="HandleChangeManager" FormName="UserChangePasswordForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label" for="role">Wybierz Kierownika</label>
+        <InputSelect id="role" class="form-select" @bind-Value="@_changeManagerModel.ManagerId">
+            @if (_users.IsNullOrEmpty())
+            {
+                <option value="-1">Błąd połączenia z bazą danych</option>
+            }
+            else
+            {
+                <option value="-1">Wybierz Kierownika</option>
+                @foreach (var u in _users.Where(u=>u.Enabled))
+                {
+                    <option value="@u.UserId">@u.FullName</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <button class="btn btn-primary mt-3" type="submit">Zmień</button>
+    @if (!string.IsNullOrEmpty(_infoMessage))
+    {
+        <div class="@_infoClass mt-3">
+            @_infoMessage
+        </div>
+    }
+</EditForm>
+@code {
+    public class ChangeManagerModel
+    {
+        [Required(ErrorMessage = "Pole jest wymagane")]
+        public int ManagerId { get; set; } = -1;
+    }
+    [Parameter] public int DepartmentId { get; set; }
+    private ChangeManagerModel _changeManagerModel = new ChangeManagerModel();
+    private string _infoMessage = "";
+    private string _infoClass = "invisible"; // lub "d-none"
+    private List<User> _users = [];
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await UserService.GetAllUsersAsync();
+    }
+
+    private async Task HandleChangeManager()
+    {
+        if (_changeManagerModel.ManagerId < 0)
+        {
+            _infoMessage = "Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione.";
+            _infoClass = "alert alert-danger";
+            return;
+        }
+
+        OperationResult result = await DepartmentService.ChangeDepartmentManagerAsync(DepartmentId,_changeManagerModel.ManagerId);
+
+        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
+            ? "alert alert-success" : "alert alert-danger";
+        _infoMessage = result.Message;
+    }
+
+}

@@ -1,0 +1,71 @@
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using Microsoft.AspNetCore.Authorization
+@using OcenaPracowniczaLys.Components.Popups
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Services
+@attribute [Authorize(Roles = "admin")]
+@inject IUserService UserService
+@inject IDepartmentService DepartmentService
+<div class="panel-fragment">
+    <div class="w-100 d-flex justify-content-center align-content-center">
+        <span class="display-4">Użytkownicy</span>
+    </div>
+    <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Imię i nazwisko</th>
+                <th scope="col">Login</th>
+                <th scope="col">Aktywny</th>
+                <th scope="col">Dezaktywuj</th>
+                <th scope="col">Zmiana hasła</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var user in Users)
+            {
+                <tr>
+                    <th scope="row">@user.UserId</th>
+                    <td>@user.FullName</td>
+                    <td>@user.Login</td>
+                    <td>@user.Enabled</td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="@(() => ToggleEnableStatus(user.UserId))">
+                            <i class="bi bi-power"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => ShowChangeUserPasswordForm(user.UserId))">
+                            <i class="bi bi-key"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddUserForm">Dodaj</button>
+</div>
+@code {
+    [Parameter] public required List<User> Users { get; set; }
+    [CascadingParameter] public IModalService Modal { get; set; }
+    
+    void ShowAddUserForm()
+    {
+        Modal.Show<AddUserPopup>("Dodaj użytkownika");
+    }
+
+    void ToggleEnableStatus(int userId)
+    {
+        UserService.ToggleEnableStatusAsync(userId);
+    }
+
+    void ShowChangeUserPasswordForm(int userId)
+    {
+        var parameters = new ModalParameters()
+            .Add(nameof(ChangePassowrdPopup.UserId), userId);
+        Modal.Show<ChangePassowrdPopup>("Zmień hasło", parameters);
+    }
+}

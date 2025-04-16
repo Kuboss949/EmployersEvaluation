@@ -1,0 +1,71 @@
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using OcenaPracowniczaLys.Components.Popups
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Services
+@inject IDepartmentService DepartmentService
+
+<div class="panel-fragment">
+    <div class="w-100 d-flex justify-content-center align-content-center">
+        <span class="display-4">Działy</span>
+    </div>
+    <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nazwa działu</th>
+                <th scope="col">Kierownik</th>
+                <th scope="col">Aktywny</th>
+                <th scope="col">Dezaktywuj</th>
+                <th scope="col">Zmiana kierownika</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var dep in Departments)
+            {
+                <tr>
+                    <th scope="row">@dep.DepartmentId</th>
+                    <td>@dep.Name</td>
+                    <td>@dep.Manager?.FullName</td>
+                    <td>@dep.Enabled</td>
+                    <td class="align-content-center">
+                        <button class="btn btn-danger" @onclick="@(() => ToggleDepartmentEnableStatus(dep.DepartmentId))">
+                            <i class="bi bi-power"></i>
+                        </button>
+                    </td>
+                    <td class="align-content-center">
+                        <button class="btn btn-primary" @onclick="@(() => ShowChangeDepartmentForm(dep.DepartmentId))">
+                            <i class="bi bi-gear-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowCreateDepartmentForm">Dodaj</button>
+</div>
+
+@code {
+    [Parameter] public required List<Department> Departments { get; set; }    
+    [CascadingParameter] public IModalService Modal { get; set; }
+    
+    void ShowCreateDepartmentForm()
+    {
+        Modal.Show<CreateDepartmentPopup>("Dodaj dział");
+    }
+
+    void ToggleDepartmentEnableStatus(int depId)
+    {
+        DepartmentService.ToggleEnableDepartmentAsync(depId);
+    }
+
+    void ShowChangeDepartmentForm(int depId)
+    {
+        var parameters = new ModalParameters()
+            .Add(nameof(ChangeDepartmentPopup.DepartmentId), depId);
+        Modal.Show<ChangeDepartmentPopup>("Zmień kierownika", parameters);
+    }
+    
+}

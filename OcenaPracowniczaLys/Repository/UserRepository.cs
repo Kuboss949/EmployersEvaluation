@@ -26,41 +26,111 @@ public class UserRepository : IUserRepository
 
     public async Task<OperationResult> AddUserAsync(User user)
     {
-        var result = new OperationResult(); 
-        _context.Users.Add(user);
-        int status = await _context.SaveChangesAsync();
+        var result = new OperationResult();
         
-         result.Status = status > 0 ? "Success" : "Failed";
-         result.Message = status > 0 
-             ? $"Dodano użytkownika {user.Login}!" 
-             : "Oops! Coś poszło nie tak...";
-    
-         return result;
+        if (user == null)
+        {
+            result.Status = "Failed";
+            result.Message = "Przekazano nieprawidłowy obiekt użytkownika.";
+            return result;
+        }
+
+        try
+        {
+            _context.Users.Add(user);
+            int status = await _context.SaveChangesAsync();
+
+            if (status > 0)
+            {
+                result.Status = "Success";
+                result.Message = $"Dodano użytkownika {user.Login}!";
+            }
+            else
+            {
+                result.Status = "Failed";
+                result.Message = "Operacja nie powiodła się. Brak zmian w bazie danych.";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Status = "Failed";
+            result.Message = $"Wystąpił błąd: {ex.Message}";
+        }
+
+        return result;
     }
 
     public async Task<OperationResult> ToggleEnableStatusAsync(int userId)
     {
-        var result = new OperationResult(); 
-        _context.Users.FirstOrDefault(u=>u.UserId == userId).Enabled = !_context.Users.FirstOrDefault(u => u.UserId == userId).Enabled;
-        int status = await _context.SaveChangesAsync();
-        result.Status = status > 0 ? "Success" : "Failed";
-        result.Message = status > 0 
-            ? $"Zresetowano hasło użytkownika!" 
-            : "Oops! Coś poszło nie tak...";
-    
+        var result = new OperationResult();
+        
+        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+        if (user == null)
+        {
+            result.Status = "Failed";
+            result.Message = "Nie znaleziono użytkownika o podanym identyfikatorze.";
+            return result;
+        }
+
+        try
+        {
+            user.Enabled = !user.Enabled;
+            int status = await _context.SaveChangesAsync();
+
+            if (status > 0)
+            {
+                result.Status = "Success";
+                result.Message = "Pomyślnie zmieniono status użytkownika.";
+            }
+            else
+            {
+                result.Status = "Failed";
+                result.Message = "Operacja nie powiodła się. Brak zmian w bazie danych.";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Status = "Failed";
+            result.Message = $"Wystąpił błąd: {ex.Message}";
+        }
+
         return result;
     }
 
     public async Task<OperationResult> ChangePasswordAdminAsync(int userId, string newPassword)
     {
-        var result = new OperationResult(); 
-        _context.Users.FirstOrDefault(u=>u.UserId == userId).Password = newPassword;
-        int status = await _context.SaveChangesAsync();
-        result.Status = status > 0 ? "Success" : "Failed";
-        result.Message = status > 0 
-            ? $"Zmieniono hasło użytkownika!" 
-            : "Oops! Coś poszło nie tak...";
-    
+        var result = new OperationResult();
+        
+        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+        if (user == null)
+        {
+            result.Status = "Failed";
+            result.Message = "Nie znaleziono użytkownika o podanym identyfikatorze.";
+            return result;
+        }
+
+        try
+        {
+            user.Password = newPassword;
+            int status = await _context.SaveChangesAsync();
+
+            if (status > 0)
+            {
+                result.Status = "Success";
+                result.Message = "Zmieniono hasło użytkownika!";
+            }
+            else
+            {
+                result.Status = "Failed";
+                result.Message = "Operacja nie powiodła się. Brak zmian w bazie danych.";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Status = "Failed";
+            result.Message = $"Wystąpił błąd: {ex.Message}";
+        }
+
         return result;
     }
 }

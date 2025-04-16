@@ -1,0 +1,67 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.IdentityModel.Tokens
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Models
+@using OcenaPracowniczaLys.Services
+@inject IDepartmentService DepartmentService
+@inject IUserService UserService
+
+<EditForm Model="@_request" OnValidSubmit="HandleCreateDepartment" FormName="UserChangePasswordForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <span class="mt-2">
+        <label class="form-label" for="name">Nazwa</label>
+        <InputText class="form-control" id="name" @bind-Value="_request.Name"/>
+    </span>
+    <div class="mb-3">
+        <label class="form-label" for="role">Wybierz Kierownika</label>
+        <InputSelect id="role" class="form-select" @bind-Value="@_request.ManagerId">
+            @if (_users.IsNullOrEmpty())
+            {
+                <option value="-1">Błąd połączenia z bazą danych</option>
+            }
+            else
+            {
+                <option value="-1">Wybierz Kierownika</option>
+                @foreach (var u in _users.Where(u=>u.Enabled))
+                {
+                    <option value="@u.UserId">@u.FullName</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <button class="btn btn-primary mt-3" type="submit">Dodaj</button>
+    @if (!string.IsNullOrEmpty(_infoMessage))
+    {
+        <div class="@_infoClass mt-3">
+            @_infoMessage
+        </div>
+    }
+</EditForm>
+@code {
+    public class ChangeManagerModel
+    {
+        [Required(ErrorMessage = "Pole jest wymagane")]
+        public int ManagerId { get; set; } = -1;
+    }
+    private CreateDepartmentRequest _request = new CreateDepartmentRequest();
+    private string _infoMessage = "";
+    private string _infoClass = "invisible"; // lub "d-none"
+    private List<User> _users = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await UserService.GetAllUsersAsync();
+    }
+
+    private async Task HandleCreateDepartment(EditContext arg)
+    {
+        OperationResult result = await DepartmentService.CreateDepartmentAsync(_request);
+
+        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
+            ? "alert alert-success" : "alert alert-danger";
+        _infoMessage = result.Message;
+    }
+
+}
