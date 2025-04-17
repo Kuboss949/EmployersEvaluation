@@ -3,11 +3,10 @@
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Models
 @using OcenaPracowniczaLys.Services
-@inject IDepartmentService DepartmentService
 @inject IUserService UserService
 
 
-<EditForm Model="@_changeManagerModel" OnValidSubmit="HandleChangeManager" FormName="UserChangePasswordForm">
+<EditForm Model="@_changeManagerModel" OnValidSubmit="HandleChangeManager" FormName="UserChangeManagerForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -38,7 +37,8 @@
     }
 </EditForm>
 @code {
-    [Parameter] public int DepartmentId { get; set; }
+    
+    [Parameter] public int UserId { get; set; }
     private ChangeManagerModel _changeManagerModel = new ChangeManagerModel();
     private string _infoMessage = "";
     private string _infoClass = "invisible"; // lub "d-none"
@@ -57,7 +57,7 @@
             return;
         }
 
-        OperationResult result = await DepartmentService.ChangeDepartmentManagerAsync(DepartmentId,_changeManagerModel.ManagerId);
+        OperationResult result = await UserService.ChangeUserManagerAsync(UserId, _changeManagerModel.ManagerId);
 
         _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
             ? "alert alert-success" : "alert alert-danger";

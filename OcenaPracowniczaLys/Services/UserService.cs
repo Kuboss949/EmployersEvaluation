@@ -48,4 +48,9 @@ public class UserService : IUserService
         newPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
         return await _userRepository.ChangePasswordAdminAsync(userId, newPassword);
     }
+
+    public async Task<OperationResult> ChangeUserManagerAsync(int userId, int newManagerId)
+    {
+        return await _userRepository.ChangeUserManagerAsync(userId, newManagerId);
+    }
 }

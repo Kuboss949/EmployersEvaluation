@@ -133,4 +133,41 @@ public class UserRepository : IUserRepository
 
         return result;
     }
+
+    public async Task<OperationResult> ChangeUserManagerAsync(int userId, int newManagerId)
+    {
+        var result = new OperationResult();
+        
+        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+        if (user == null)
+        {
+            result.Status = "Failed";
+            result.Message = "Nie znaleziono użytkownika o podanym identyfikatorze.";
+            return result;
+        }
+
+        try
+        {
+            user.ManagerId = newManagerId;
+            int status = await _context.SaveChangesAsync();
+
+            if (status > 0)
+            {
+                result.Status = "Success";
+                result.Message = "Zmieniono kierownika!";
+            }
+            else
+            {
+                result.Status = "Failed";
+                result.Message = "Operacja nie powiodła się. Brak zmian w bazie danych.";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Status = "Failed";
+            result.Message = $"Wystąpił błąd: {ex.Message}";
+        }
+
+        return result;
+    }
 }

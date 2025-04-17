@@ -10,4 +10,5 @@ public interface IUserRepository
     Task<OperationResult> AddUserAsync(User user);
     Task<OperationResult> ToggleEnableStatusAsync(int userId);
     Task<OperationResult> ChangePasswordAdminAsync(int userId, string newPassword);
+    Task<OperationResult> ChangeUserManagerAsync(int userId, int newManagerId);
 }

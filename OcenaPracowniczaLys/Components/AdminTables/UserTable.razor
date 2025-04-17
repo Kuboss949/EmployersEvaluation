@@ -19,7 +19,9 @@
                 <th scope="col">Imię i nazwisko</th>
                 <th scope="col">Login</th>
                 <th scope="col">Aktywny</th>
+                <th scope="col">Kierownik</th>
                 <th scope="col">Dezaktywuj</th>
+                <th scope="col">Zmiana kierownika</th>
                 <th scope="col">Zmiana hasła</th>
             </tr>
             </thead>
@@ -31,9 +33,15 @@
                     <td>@user.FullName</td>
                     <td>@user.Login</td>
                     <td>@user.Enabled</td>
+                    <td>@(user.ManagerId != null ? Users.FirstOrDefault(u=>u.UserId == user.ManagerId).FullName : "-")</td>
                     <td>
                         <button class="btn btn-danger" @onclick="@(() => ToggleEnableStatus(user.UserId))">
                             <i class="bi bi-power"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => ShowChangeUserManagerForm(user.UserId))">
+                            <i class="bi bi-person-square"></i>
                         </button>
                     </td>
                     <td>
@@ -67,5 +75,12 @@
         var parameters = new ModalParameters()
             .Add(nameof(ChangePassowrdPopup.UserId), userId);
         Modal.Show<ChangePassowrdPopup>("Zmień hasło", parameters);
+    }
+    
+    void ShowChangeUserManagerForm(int userId)
+    {
+        var parameters = new ModalParameters()
+            .Add(nameof(ChangeUserManagerPopup.UserId), userId);
+        Modal.Show<ChangeUserManagerPopup>("Zmień kierownika", parameters);
     }
 }
