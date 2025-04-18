@@ -31,7 +31,7 @@ public class DepartmentService : IDepartmentService
             ManagerId = request.ManagerId,
             Enabled = true
         };
-        return await _repository.CreateDepartmentAsync(department);
+        return await _repository.AddDepartmentAsync(department);
     }
 
     public async Task<OperationResult> ChangeDepartmentManagerAsync(int departmentId, int newManagerId)
@@ -42,5 +42,20 @@ public class DepartmentService : IDepartmentService
     public async Task<OperationResult> ToggleEnableDepartmentAsync(int departmentId)
     {
         return await _repository.ToggleEnableDepartmentAsync(departmentId);
+    }
+
+    public async Task<OperationResult> ToggleEnableMainDepartmentAsync(int departmentId)
+    {
+        return await _repository.ToggleEnableMainDepartmentAsync(departmentId);
+    }
+
+    public async Task<OperationResult> AddMainDepartmentAsync(AddMainDepartmentRequest request)
+    {
+        MainDepartment newMainDepartment = new MainDepartment()
+        {
+            Name = request.Name,
+            Enabled = false
+        };
+        return await _repository.AddMainDepartmentAsync(newMainDepartment);
     }
 }

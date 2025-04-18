@@ -12,4 +12,6 @@ public interface IDepartmentService
     Task<OperationResult> ChangeDepartmentManagerAsync(int departmentId, int newManagerId);
     
     Task<OperationResult> ToggleEnableDepartmentAsync(int departmentId);
+    Task<OperationResult> ToggleEnableMainDepartmentAsync(int departmentId);
+    Task<OperationResult> AddMainDepartmentAsync(AddMainDepartmentRequest request);
 }

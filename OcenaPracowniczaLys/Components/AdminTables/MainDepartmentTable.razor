@@ -1,0 +1,57 @@
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using OcenaPracowniczaLys.Components.Popups
+@using OcenaPracowniczaLys.Data
+@using OcenaPracowniczaLys.Services
+@inject IDepartmentService DepartmentService
+
+<div class="panel-fragment">
+    <div class="w-100 d-flex justify-content-center align-content-center">
+        <span class="display-5">Działy</span>
+    </div>
+    <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
+        <table class="table table-striped">
+            <thead>
+            <tr class="sticky-top my-sticky-top bg-white">
+                <th scope="col">ID</th>
+                <th scope="col">Nazwa działu</th>
+                <th scope="col">Aktywny</th>
+                <th scope="col">Dezaktywuj</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var dep in MainDepartments)
+            {
+                <tr>
+                    <th scope="row">@dep.MainDepartmentId</th>
+                    <td>@dep.Name</td>
+                    <td>@dep.Enabled</td>
+                    <td class="align-content-center">
+                        <button class="btn btn-danger" @onclick="@(() => ToggleMainDepartmentEnableStatus(dep.MainDepartmentId))">
+                            <i class="bi bi-power"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddMainDepartmentForm">Dodaj</button>
+</div>
+
+@code {
+    [Parameter] public required List<MainDepartment> MainDepartments { get; set; }    
+    [CascadingParameter] public IModalService Modal { get; set; }
+    
+    void ShowAddMainDepartmentForm()
+    {
+        Modal.Show<AddMainDepartmentPopup>("Dodaj dział główny");
+    }
+
+    void ToggleMainDepartmentEnableStatus(int depId)
+    {
+        DepartmentService.ToggleEnableMainDepartmentAsync(depId);
+    }
+    
+    
+}
