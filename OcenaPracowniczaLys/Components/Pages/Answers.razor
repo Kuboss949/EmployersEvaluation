@@ -1,14 +1,14 @@
 @page "/odpowiedzi"
 @using Microsoft.AspNetCore.Components.Authorization
+@using OcenaPracowniczaLys.AuthenticationProvider
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Services
-@using OcenaPracowniczaLys.TextAssets
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "user,owner")]
 @inject AuthenticationStateProvider AuthProvider
 @inject IEvaluationService EvaluationService
 @inject IDepartmentService DepartamentService
 @inject IQuestionService QuestionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Nav
 <div class="container-fluid min-vh-100 d-flex">
     <div class="row w-100">
         <div class="col-md-3">
@@ -131,7 +131,13 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var appAuthStateProvider = (AppAuthStateProvider)AuthenticationStateProvider;
+        var authState = await appAuthStateProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated == true && !authState.User.IsInRole("admin"))
+        {
+            Nav.NavigateTo("/login");
+        }
+        
         var user = authState.User;
         var userIdClaim = user.FindFirst("UserId");
         if (userIdClaim != null)

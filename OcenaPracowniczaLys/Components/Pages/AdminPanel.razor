@@ -1,13 +1,16 @@
 @page "/admin-panel"
 @using Blazored.Modal.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using OcenaPracowniczaLys.AuthenticationProvider
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Services
 @using OcenaPracowniczaLys.Components.AdminTables
-@attribute [Authorize(Roles = "admin")]
 @inject IUserService UserService
 @inject IDepartmentService DepartmentService
 @inject IQuestionService QuestionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Nav
 
 
 <div class="container min-vh-100 d-flex">
@@ -31,6 +34,12 @@
     
     protected override async Task OnInitializedAsync()
     {
+        var appAuthStateProvider = (AppAuthStateProvider)AuthenticationStateProvider;
+        var authState = await appAuthStateProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated == true && !authState.User.IsInRole("admin"))
+        {
+            Nav.NavigateTo("/login");
+        }
         _users = await UserService.GetAllUsersAsync();
         _departments = await DepartmentService.GetAllDepartmentsAsync();
         _mainDepartments = await DepartmentService.GetAllMainDepartmentsAsync();
