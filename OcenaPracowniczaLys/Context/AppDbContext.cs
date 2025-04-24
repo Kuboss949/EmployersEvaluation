@@ -26,6 +26,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<ManagerAnswer> ManagerAnswers { get; set; }
 
+    public virtual DbSet<ManagerAnswersText> ManagerAnswersTexts { get; set; }
+
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -93,6 +95,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("employee_position");
             entity.Property(e => e.MainDepartmentId).HasColumnName("main_department_id");
+            entity.Property(e => e.ManagerAnswerId).HasColumnName("manager_answer_id");
             entity.Property(e => e.ManagerId).HasColumnName("manager_id");
 
             entity.HasOne(d => d.Department).WithMany(p => p.Evaluations)
@@ -116,6 +119,9 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.MainDepartmentId).HasName("PK__MainDepa__F1F83E9A5CDEA549");
 
             entity.Property(e => e.MainDepartmentId).HasColumnName("main_department_id");
+            entity.Property(e => e.Enabled)
+                .HasDefaultValue(true)
+                .HasColumnName("enabled");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
@@ -125,20 +131,37 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.ManagerAnswerId).HasName("PK__ManagerA__5B94A64B710564FF");
 
-            entity.Property(e => e.ManagerAnswerId).HasColumnName("manager_answer_id");
-            entity.Property(e => e.AnswerText).HasColumnName("answer_text");
-            entity.Property(e => e.EvaluationId).HasColumnName("evaluation_id");
-            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.HasIndex(e => e.EvaluationId, "UQ_ManagerAnswer_Evaluation").IsUnique();
 
-            entity.HasOne(d => d.Evaluation).WithMany(p => p.ManagerAnswers)
-                .HasForeignKey(d => d.EvaluationId)
+            entity.Property(e => e.ManagerAnswerId).HasColumnName("manager_answer_id");
+            entity.Property(e => e.EvaluationId).HasColumnName("evaluation_id");
+
+            entity.HasOne(d => d.Evaluation).WithOne(p => p.ManagerAnswer)
+                .HasForeignKey<ManagerAnswer>(d => d.EvaluationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ManagerAnswers_Evaluations");
+        });
 
-            entity.HasOne(d => d.Question).WithMany(p => p.ManagerAnswers)
+        modelBuilder.Entity<ManagerAnswersText>(entity =>
+        {
+            entity.HasKey(e => e.ManagerAnswerTextId);
+
+            entity.ToTable("ManagerAnswersText");
+
+            entity.Property(e => e.ManagerAnswerTextId).HasColumnName("manager_answer_text_id");
+            entity.Property(e => e.AnswerText).HasColumnName("answer_text");
+            entity.Property(e => e.ManagerAnswerId).HasColumnName("manager_answer_id");
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+
+            entity.HasOne(d => d.ManagerAnswer).WithMany(p => p.ManagerAnswersTexts)
+                .HasForeignKey(d => d.ManagerAnswerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ManagerAnswersText_ManagerAnswers");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.ManagerAnswersTexts)
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ManagerAnswers_Questions");
+                .HasConstraintName("FK_ManagerAnswersText_Questions");
         });
 
         modelBuilder.Entity<Question>(entity =>
@@ -146,7 +169,13 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.QuestionId).HasName("PK__Question__2EC21549D04AD0B0");
 
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.Enabled)
+                .HasDefaultValue(true)
+                .HasColumnName("enabled");
             entity.Property(e => e.MainDepartmentId).HasColumnName("main_department_id");
+            entity.Property(e => e.Priority)
+                .HasDefaultValue(100)
+                .HasColumnName("priority");
             entity.Property(e => e.QuestionText)
                 .HasMaxLength(1000)
                 .HasColumnName("question_text");

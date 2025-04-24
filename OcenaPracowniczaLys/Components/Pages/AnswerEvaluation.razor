@@ -1,0 +1,117 @@
+@page "/odpowiedz-na-ocene/{EvaluationId:int}"
+@inject IEvaluationService EvaluationService
+@inject IQuestionService QuestionService
+@inject NavigationManager Nav
+
+<div class="container min-vh-100 d-flex">
+    <div class="row w-100">
+        <div class="col-md-12">
+            @* <button class="btn btn-primary" @onclick="PrintFragment">Drukuj fragment</button> *@
+            @if (_evaluation is not null && _questions is not null)
+            {
+                <div class="d-flex">
+                    <div class="answer-part card mt-3 flex-fill">
+                        <div class="bg-warning answer-part-name card-header fw-bold">
+                            Dział
+                        </div>
+                        <div class="answer-part-value card-body">
+                            @_evaluation.Department.Name
+                        </div>
+                    </div>
+                    <div class="answer-part card mt-3 flex-fill">
+                        <div class="bg-warning answer-part-name card-header fw-bold">
+                            Imię i nazwisko
+                        </div>
+                        <div class="answer-part-value card-body">
+                            @_evaluation.EmployeeName
+                        </div>
+                    </div>
+                    <div class="answer-part card mt-3 flex-fill">
+                        <div class="bg-warning answer-part-name card-header fw-bold">
+                            Stanowisko
+                        </div>
+                        <div class="answer-part-value card-body">
+                            @_evaluation.EmployeePosition
+                        </div>
+                    </div>
+                </div>
+            
+                <EditForm Model="@_request" OnValidSubmit="HandleAnswerAdd">
+                    @foreach (var answerEntry in _request.Answers)
+                    {
+                        <div class="answer-part card mt-3">
+                            <div class="bg-warning answer-part-name card-header fw-bold">
+                                @answerEntry.QuestionContent
+                            </div>
+                            <div class="answer-part-value card-body">
+                                @_evaluation.EmployeeAnswers.First(a => a.QuestionId == answerEntry.QuestionId).AnswerText
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"
+                                   for="@($"question{answerEntry.QuestionId}")">
+                                Twoja odpowiedź:
+                            </label>
+                            <InputTextArea id="@($"question{answerEntry.QuestionId}")"
+                                           class="form-control"
+                                           @bind-Value="answerEntry.Answer" />
+                        </div>
+                    }
+                    <button class="btn btn-primary mt-5 mb-5" type="submit">Dodaj odpowedź</button>
+                    @if (!string.IsNullOrEmpty(_infoMessage))
+                    {
+                        <div class="@_infoClass mt-3">
+                            @_infoMessage
+                        </div>
+                    }
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int EvaluationId { get; set; }
+    Evaluation? _evaluation = new Evaluation();
+    AddManagerAnswerRequest _request = new AddManagerAnswerRequest();
+    List<Question>? _questions;
+    private string _infoMessage = "";
+    private string _infoClass = "invisible";
+    
+    
+    //TODO zabezpieczyć checkiem czy dobry user chce odpowiadać -> uwaga na hierarchie! 
+    protected override async Task OnParametersSetAsync()
+    {
+        _evaluation = await EvaluationService.GetEvaluationByIdAsync(EvaluationId);
+        if (_evaluation == null)
+        {
+            Nav.NavigateTo("/odpowiedzi");
+            return;
+        }
+
+        _questions = await QuestionService.GetQuestionsAsync();
+
+        _request = new AddManagerAnswerRequest {
+            Answers = _evaluation.EmployeeAnswers
+                .Select(ea => new AnswerEntry {
+                    QuestionId      = ea.QuestionId,
+                    QuestionContent = _questions
+                        .First(q => q.QuestionId == ea.QuestionId)
+                        .QuestionText,
+                    Answer          = string.Empty
+                })
+                .ToList()
+        };
+    }
+    
+    private async Task HandleAnswerAdd(EditContext arg)
+    {
+        _request.EvaluationId = EvaluationId;
+        OperationResult result = await EvaluationService.AddManagerAnswerAsync(_request);
+
+        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
+            ? "alert alert-success" : "alert alert-danger";
+        _infoMessage = result.Message;
+    }
+
+}

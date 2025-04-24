@@ -8,4 +8,7 @@ public interface IEvaluationService
     Task<OperationResult> AddEvaluationAsync(AddEvaluationRequest request);
     Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId);
     Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int UserId);
+    Task<Evaluation?> GetEvaluationByIdAsync(int EvaluationId);
+    Task<OperationResult> AddManagerAnswerAsync(AddManagerAnswerRequest request);
+
 }

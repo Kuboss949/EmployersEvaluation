@@ -55,5 +55,30 @@ public class EvaluationService : IEvaluationService
         return await _repository.GetAllIndirectEvaluationsAsync(UserId);
     }
 
-    
+    public async Task<Evaluation?> GetEvaluationByIdAsync(int EvaluationId)
+    {
+        return await _repository.GetEvaluationByIdAsync(EvaluationId);
+    }
+
+    public async Task<OperationResult> AddManagerAnswerAsync(AddManagerAnswerRequest request)
+    {
+        var managerAnswer = new ManagerAnswer()
+        {
+            EvaluationId = request.EvaluationId,
+        };
+        
+        List<ManagerAnswersText> answers = new List<ManagerAnswersText>();
+        
+        foreach (var entry in request.Answers)
+        {
+            var answer = new ManagerAnswersText()
+            {
+                AnswerText = entry.Answer,
+                QuestionId = entry.QuestionId
+            };
+            answers.Add(answer);
+        }
+        managerAnswer.ManagerAnswersTexts = answers;
+        return await _repository.AddManagerAnswerAsync(managerAnswer);
+    }
 }

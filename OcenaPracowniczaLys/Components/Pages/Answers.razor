@@ -17,10 +17,10 @@
                 <InputText class="form-control" id="name" @bind-Value="@_filterName"/>
             </span>
             <span class="mt-2">
-                        <label class="form-label" for="supervisor">Przełożony bezpośredni</label>
+                        <label class="form-label" for="supervisor">Rok</label>
                         <InputSelect id="supervisor" class="form-select" @bind-Value="@_filterYear">
                             <option value="-1">Wybierz rok</option>
-                            @for (int i = 2023; i < 2028; i++)
+                            @for (int i = 2023; i < DateTime.Now.Year; i++)
                             {
                                 <option value="@i">@i.ToString()</option>
                             }
@@ -53,11 +53,12 @@
         </div>
         <div class="col-md-9">
             <button class="btn btn-primary" @onclick="PrintFragment">Drukuj fragment</button>
+            <button class="btn btn-primary" @onclick="RedirectToAnswerFrom">Odpowiedz</button>
             <div id="printArea">
             @if (_selectedAnswerId != -1 && _selectedAnswer != null)
             {
                 <div class="d-flex">
-                <div class="answer-part card mt-3 col-md-4">
+                <div class="answer-part card m-2 flex-fill">
                     <div class="bg-warning answer-part-name card-header fw-bold">
                         Dział
                     </div>
@@ -65,7 +66,7 @@
                         @_selectedAnswer.Department.Name
                     </div>
                 </div>
-                <div class="answer-part card mt-3 col-md-4">
+                <div class="answer-part card m-2 flex-fill">
                     <div class="bg-warning answer-part-name card-header fw-bold">
                         Imię i nazwisko
                     </div>
@@ -73,7 +74,7 @@
                         @_selectedAnswer.EmployeeName
                     </div>
                 </div>
-                <div class="answer-part card mt-3 col-md-4">
+                <div class="answer-part card m-2 flex-fill">
                     <div class="bg-warning answer-part-name card-header fw-bold">
                         Stanowisko
                     </div>
@@ -92,6 +93,17 @@
                             @answer.AnswerText
                         </div>
                     </div>
+                    @if(_selectedAnswer.ManagerAnswer is not null)
+                    {
+                        <div class="answer-part card  mt-3">
+                            <div class="bg-info answer-part-name card-header fw-bold">
+                                Twoja odpowiedź
+                            </div>
+                            <div class="answer-part-value card-body">
+                                @_selectedAnswer.ManagerAnswer?.ManagerAnswersTexts.FirstOrDefault(a => a.QuestionId == @answer.Question.QuestionId)?.AnswerText
+                            </div>
+                        </div>
+                    }
                 }
             }
             </div>
@@ -163,5 +175,11 @@
         // Przekazujemy identyfikator elementu, który chcemy wydrukować
         await JS.InvokeVoidAsync("printFragment", "printArea");
     }
+
+    private void RedirectToAnswerFrom()
+    {
+        Nav.NavigateTo($"/odpowiedz-na-ocene/{_selectedAnswerId}");
+    }
+
 }
 

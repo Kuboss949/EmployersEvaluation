@@ -19,6 +19,8 @@ public partial class Evaluation
 
     public DateTime CreatedAt { get; set; }
 
+    public int? ManagerAnswerId { get; set; }
+
     public virtual Department Department { get; set; } = null!;
 
     public virtual ICollection<EmployeeAnswer> EmployeeAnswers { get; set; } = new List<EmployeeAnswer>();
@@ -27,5 +29,5 @@ public partial class Evaluation
 
     public virtual User Manager { get; set; } = null!;
 
-    public virtual ICollection<ManagerAnswer> ManagerAnswers { get; set; } = new List<ManagerAnswer>();
+    public virtual ManagerAnswer? ManagerAnswer { get; set; }
 }

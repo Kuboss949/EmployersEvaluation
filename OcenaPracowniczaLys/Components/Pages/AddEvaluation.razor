@@ -63,7 +63,7 @@ else
                             }
                             else
                             {
-                                <option value="">Wybierz Dział</option>
+                                <option value="">Wybierz swojego kierownika</option>
                                 @foreach (var user in _supervisors)
                                 {
                                     <option value="@user.UserId">@user.FullName</option>
@@ -81,7 +81,7 @@ else
                             }
                             else
                             {
-                                <option value="">Wybierz Kierownika</option>
+                                <option value="">Wybierz swój dział</option>
                                 @foreach (var dep in _departments)
                                 {
                                     @if (dep.ManagerId.ToString()!.Equals(_request.SupervisorId))
