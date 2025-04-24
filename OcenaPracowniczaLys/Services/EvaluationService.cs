@@ -81,4 +81,55 @@ public class EvaluationService : IEvaluationService
         managerAnswer.ManagerAnswersTexts = answers;
         return await _repository.AddManagerAnswerAsync(managerAnswer);
     }
+
+    public async Task<ManagerAnswer?> GetManagerAnswerByEvaluationIdAsync(int evaluationId)
+    {
+        return await _repository.GetManagerAnswerByEvaluationIdAsync(evaluationId);
+    }
+
+    public async Task<OperationResult> UpdateManagerAnswerAsync(AddManagerAnswerRequest request)
+    {
+        var result = new OperationResult();
+
+        // 1) Załaduj agregat z tekstami
+        var entity = await _repository.GetManagerAnswerByEvaluationIdAsync(request.EvaluationId);
+        if (entity == null)
+        {
+            return new OperationResult {
+                Status  = "Failed",
+                Message = "Nie znaleziono istniejącej oceny"
+            };
+        }
+
+        // 2) Zbuduj słownik istniejących tekstów po QuestionId
+        var existingByQ = entity.ManagerAnswersTexts
+            .ToDictionary(x => x.QuestionId);
+
+        // 3) Usuń te, których już nie ma w request.Answers
+        var toRemove = entity.ManagerAnswersTexts
+            .Where(x => !request.Answers.Any(a => a.QuestionId == x.QuestionId))
+            .ToList();
+        if (toRemove.Count > 0)
+            _repository.RemoveManagerAnswerTexts(toRemove);
+
+        // 4) Dla każdego entry z request albo aktualizuj, albo dodawaj
+        foreach (var ans in request.Answers)
+        {
+            if (existingByQ.TryGetValue(ans.QuestionId, out var text))
+            {
+                text.AnswerText = ans.Answer;            // update
+            }
+            else
+            {
+                entity.ManagerAnswersTexts.Add(         // nowy
+                    new ManagerAnswersText {
+                        QuestionId = ans.QuestionId,
+                        AnswerText = ans.Answer
+                    });
+            }
+        }
+
+        // 5) Zapisz zmiany
+        return await _repository.UpdateManagerAnswerAsync(entity);
+    }
 }

@@ -1,8 +1,5 @@
 @page "/odpowiedzi"
-@using Microsoft.AspNetCore.Components.Authorization
 @using OcenaPracowniczaLys.AuthenticationProvider
-@using OcenaPracowniczaLys.Data
-@using OcenaPracowniczaLys.Services
 @inject AuthenticationStateProvider AuthProvider
 @inject IEvaluationService EvaluationService
 @inject IDepartmentService DepartamentService
@@ -51,9 +48,17 @@
                 </li>
             </ul>
         </div>
-        <div class="col-md-9">
-            <button class="btn btn-primary" @onclick="PrintFragment">Drukuj fragment</button>
-            <button class="btn btn-primary" @onclick="RedirectToAnswerFrom">Odpowiedz</button>
+        <div class="col-md-9 mb-5">
+            <button class="btn btn-primary m-2" @onclick="PrintFragment">Drukuj fragment</button>
+            @if (_selectedAnswer?.ManagerAnswer is null)
+            {
+                <button class="btn btn-primary m-2" @onclick="RedirectToAnswerFrom">Odpowiedz</button>
+            }
+            else
+            {
+                <button class="btn btn-primary m-2" @onclick="RedirectToAnswerFrom">Edytuj odpowiedź</button>
+            }
+
             <div id="printArea">
             @if (_selectedAnswerId != -1 && _selectedAnswer != null)
             {
@@ -172,7 +177,6 @@
 
     private async Task PrintFragment()
     {
-        // Przekazujemy identyfikator elementu, który chcemy wydrukować
         await JS.InvokeVoidAsync("printFragment", "printArea");
     }
 

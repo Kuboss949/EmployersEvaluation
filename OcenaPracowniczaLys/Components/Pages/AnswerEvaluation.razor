@@ -90,15 +90,24 @@
         }
 
         _questions = await QuestionService.GetQuestionsAsync();
-
+        var existing = await EvaluationService
+            .GetManagerAnswerByEvaluationIdAsync(EvaluationId);
+        
         _request = new AddManagerAnswerRequest {
             Answers = _evaluation.EmployeeAnswers
-                .Select(ea => new AnswerEntry {
-                    QuestionId      = ea.QuestionId,
-                    QuestionContent = _questions
-                        .First(q => q.QuestionId == ea.QuestionId)
-                        .QuestionText,
-                    Answer          = string.Empty
+                .Select(ea =>
+                {
+                    var text = existing?
+                        .ManagerAnswersTexts
+                        .FirstOrDefault(t => t.QuestionId == ea.QuestionId);
+                    return new AnswerEntry
+                    {
+                        QuestionId = ea.QuestionId,
+                        QuestionContent = _questions
+                            .First(q => q.QuestionId == ea.QuestionId)
+                            .QuestionText,
+                        Answer = text?.AnswerText ?? string.Empty
+                    };
                 })
                 .ToList()
         };
@@ -107,7 +116,15 @@
     private async Task HandleAnswerAdd(EditContext arg)
     {
         _request.EvaluationId = EvaluationId;
-        OperationResult result = await EvaluationService.AddManagerAnswerAsync(_request);
+        OperationResult result;
+        var existing = await EvaluationService
+            .GetManagerAnswerByEvaluationIdAsync(EvaluationId);
+
+        if (existing == null)
+            result = await EvaluationService.AddManagerAnswerAsync(_request);
+        else
+            result = await EvaluationService.UpdateManagerAnswerAsync(_request);
+
 
         _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
             ? "alert alert-success" : "alert alert-danger";

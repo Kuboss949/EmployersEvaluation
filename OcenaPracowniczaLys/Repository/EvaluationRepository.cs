@@ -118,6 +118,54 @@ public class EvaluationRepository : IEvaluationRepository
             .Include(e => e.Department).FirstOrDefaultAsync(e => e.EvaluationId == EvaluationId);
     }
 
+    public async Task<ManagerAnswer?> GetManagerAnswerByEvaluationIdAsync(int evaluationId)
+    {
+        return await _context.ManagerAnswers
+            .Include(ma => ma.ManagerAnswersTexts)
+            .FirstOrDefaultAsync(ma => ma.EvaluationId == evaluationId);
+    }
+
+    public async Task<OperationResult> UpdateManagerAnswerAsync(ManagerAnswer data)
+    {
+        var result = new OperationResult();
+        
+        if (data == null)
+        {
+            result.Status = "Failed";
+            result.Message = "Przekazano nieprawidłowy obiekt użytkownika.";
+            return result;
+        }
+
+        try
+        {
+            _context.ManagerAnswers.Update(data);
+            int status = await _context.SaveChangesAsync();
+
+            if (status > 0)
+            {
+                result.Status = "Success";
+                result.Message = $"Zmieniono odpowiedź do ankiety!";
+            }
+            else
+            {
+                result.Status = "Failed";
+                result.Message = "Operacja nie powiodła się. Brak zmian w bazie danych.";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Status = "Failed";
+            result.Message = $"Wystąpił błąd: {ex.Message}";
+        }
+
+        return result;
+    }
+
+    public void RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts)
+    {
+        _context.ManagerAnswersTexts.RemoveRange(texts);
+    }
+
 
     private async Task<List<int>> GetSubordinateIdsAsync(int managerId)
     {

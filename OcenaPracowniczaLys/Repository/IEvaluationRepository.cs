@@ -7,10 +7,13 @@ public interface IEvaluationRepository
 {
     Task<OperationResult> AddEvaluationAsync(Evaluation data);
     Task<OperationResult> AddManagerAnswerAsync(ManagerAnswer data);
-    Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId);
-    Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int UserId);
-    Task<Evaluation?> GetEvaluationByIdAsync(int EvaluationId);
-    
-    
-    
+    Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int userId);
+    Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int userId);
+    Task<Evaluation?> GetEvaluationByIdAsync(int evaluationId);
+    Task<ManagerAnswer?> GetManagerAnswerByEvaluationIdAsync(int evaluationId);
+    Task<OperationResult> UpdateManagerAnswerAsync(ManagerAnswer data);
+
+    void RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts);
+
+
 }
