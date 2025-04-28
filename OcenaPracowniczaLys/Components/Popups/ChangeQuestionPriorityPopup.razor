@@ -3,6 +3,7 @@
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Models
 @using OcenaPracowniczaLys.Services
+@inject IToastService Toast
 @inject IQuestionService QuestionService
 
 
@@ -16,12 +17,6 @@
     </span>
 
     <button class="btn btn-primary mt-3" type="submit">Zmień</button>
-    @if (!string.IsNullOrEmpty(_infoMessage))
-    {
-        <div class="@_infoClass mt-3">
-            @_infoMessage
-        </div>
-    }
 </EditForm>
 @code {
     public class ChangePriorityModel
@@ -32,16 +27,15 @@
     }
     [Parameter] public int QuestionId { get; set; }
     private ChangePriorityModel _model = new();
-    private string _infoMessage = "";
-    private string _infoClass = "invisible";
 
     private async Task HandleChangeManager()
     {
         OperationResult result = await QuestionService.ChangeQuestionPriorityAsync(QuestionId, _model.Priority);
 
-        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
-            ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
 
 }

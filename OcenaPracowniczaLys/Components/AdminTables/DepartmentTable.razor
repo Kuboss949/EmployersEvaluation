@@ -4,21 +4,20 @@
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Services
 @inject IDepartmentService DepartmentService
+@inject IToastService Toast
 
 <div class="panel-fragment">
-    <div class="w-100 d-flex justify-content-center align-content-center">
-        <span class="display-5">Działy</span>
-    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowCreateDepartmentForm">Dodaj</button>
     <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
-        <table class="table table-striped">
+        <table class="table table-striped table-bordered">
             <thead>
             <tr class="sticky-top my-sticky-top bg-white">
-                <th scope="col">ID</th>
-                <th scope="col">Nazwa działu</th>
-                <th scope="col">Kierownik</th>
-                <th scope="col">Aktywny</th>
-                <th scope="col">Dezaktywuj</th>
-                <th scope="col">Zmiana kierownika</th>
+                <th scope="col" class="text-center align-middle">ID</th>
+                <th scope="col" class="text-center align-middle">Nazwa działu</th>
+                <th scope="col" class="text-center align-middle">Kierownik</th>
+                <th scope="col" class="text-center align-middle">Aktywny</th>
+                <th scope="col" class="text-center align-middle">Dezaktywuj</th>
+                <th scope="col" class="text-center align-middle">Zmiana kierownika</th>
             </tr>
             </thead>
             <tbody>
@@ -29,12 +28,12 @@
                     <td>@dep.Name</td>
                     <td>@dep.Manager?.FullName</td>
                     <td>@dep.Enabled</td>
-                    <td class="align-content-center">
+                    <td class="text-center align-middle">
                         <button class="btn btn-danger" @onclick="@(() => ToggleDepartmentEnableStatus(dep.DepartmentId))">
                             <i class="bi bi-power"></i>
                         </button>
                     </td>
-                    <td class="align-content-center">
+                    <td class="text-center align-middle">
                         <button class="btn btn-primary" @onclick="@(() => ShowChangeDepartmentForm(dep.DepartmentId))">
                             <i class="bi bi-gear-fill"></i>
                         </button>
@@ -44,7 +43,6 @@
             </tbody>
         </table>
     </div>
-    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowCreateDepartmentForm">Dodaj</button>
 </div>
 
 @code {
@@ -56,9 +54,13 @@
         Modal.Show<CreateDepartmentPopup>("Dodaj dział");
     }
 
-    void ToggleDepartmentEnableStatus(int depId)
+    async Task ToggleDepartmentEnableStatus(int depId)
     {
-        DepartmentService.ToggleEnableDepartmentAsync(depId);
+        OperationResult result =  await DepartmentService.ToggleEnableDepartmentAsync(depId);
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
 
     void ShowChangeDepartmentForm(int depId)

@@ -2,6 +2,7 @@
 @inject IEvaluationService EvaluationService
 @inject IQuestionService QuestionService
 @inject NavigationManager Nav
+@inject IToastService Toast
 
 <div class="container min-vh-100 d-flex">
     <div class="row w-100">
@@ -9,8 +10,8 @@
             @* <button class="btn btn-primary" @onclick="PrintFragment">Drukuj fragment</button> *@
             @if (_evaluation is not null && _questions is not null)
             {
-                <div class="d-flex">
-                    <div class="answer-part card mt-3 flex-fill">
+                <div class="row gx-0">
+                    <div class="answer-part card mt-3 col">
                         <div class="bg-warning answer-part-name card-header fw-bold">
                             Dział
                         </div>
@@ -18,7 +19,7 @@
                             @_evaluation.Department.Name
                         </div>
                     </div>
-                    <div class="answer-part card mt-3 flex-fill">
+                    <div class="answer-part card mt-3 col">
                         <div class="bg-warning answer-part-name card-header fw-bold">
                             Imię i nazwisko
                         </div>
@@ -26,7 +27,7 @@
                             @_evaluation.EmployeeName
                         </div>
                     </div>
-                    <div class="answer-part card mt-3 flex-fill">
+                    <div class="answer-part card mt-3 col">
                         <div class="bg-warning answer-part-name card-header fw-bold">
                             Stanowisko
                         </div>
@@ -35,7 +36,7 @@
                         </div>
                     </div>
                 </div>
-            
+
                 <EditForm Model="@_request" OnValidSubmit="HandleAnswerAdd">
                     @foreach (var answerEntry in _request.Answers)
                     {
@@ -54,16 +55,16 @@
                             </label>
                             <InputTextArea id="@($"question{answerEntry.QuestionId}")"
                                            class="form-control"
-                                           @bind-Value="answerEntry.Answer" />
+                                           @bind-Value="answerEntry.Answer"/>
                         </div>
                     }
-                    <button class="btn btn-primary mt-5 mb-5" type="submit">Dodaj odpowedź</button>
-                    @if (!string.IsNullOrEmpty(_infoMessage))
-                    {
-                        <div class="@_infoClass mt-3">
-                            @_infoMessage
-                        </div>
-                    }
+                    <button class="btn btn-primary mt-5 mb-5" type="submit">Dodaj odpowiedź</button>
+                    @* @if (!string.IsNullOrEmpty(_infoMessage)) *@
+                    @* { *@
+                    @*     <div class="@_infoClass mt-3"> *@
+                    @*         @_infoMessage *@
+                    @*     </div> *@
+                    @* } *@
                 </EditForm>
             }
         </div>
@@ -74,11 +75,12 @@
     [Parameter] public int EvaluationId { get; set; }
     Evaluation? _evaluation = new Evaluation();
     AddManagerAnswerRequest _request = new AddManagerAnswerRequest();
+
     List<Question>? _questions;
-    private string _infoMessage = "";
-    private string _infoClass = "invisible";
-    
-    
+    // private string _infoMessage = "";
+    // private string _infoClass = "invisible";
+
+
     //TODO zabezpieczyć checkiem czy dobry user chce odpowiadać -> uwaga na hierarchie! 
     protected override async Task OnParametersSetAsync()
     {
@@ -92,8 +94,9 @@
         _questions = await QuestionService.GetQuestionsAsync();
         var existing = await EvaluationService
             .GetManagerAnswerByEvaluationIdAsync(EvaluationId);
-        
-        _request = new AddManagerAnswerRequest {
+
+        _request = new AddManagerAnswerRequest
+        {
             Answers = _evaluation.EmployeeAnswers
                 .Select(ea =>
                 {
@@ -112,23 +115,34 @@
                 .ToList()
         };
     }
-    
+
     private async Task HandleAnswerAdd(EditContext arg)
     {
         _request.EvaluationId = EvaluationId;
-        OperationResult result;
+        // OperationResult result;
+        // var existing = await EvaluationService
+        //     .GetManagerAnswerByEvaluationIdAsync(EvaluationId);
+        //
+        // if (existing == null)
+        //     result = await EvaluationService.AddManagerAnswerAsync(_request);
+        // else
+        //     result = await EvaluationService.UpdateManagerAnswerAsync(_request);
+        //
+        //
+        // _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
+        //     ? "alert alert-success" : "alert alert-danger";
+        // _infoMessage = result.Message;
         var existing = await EvaluationService
             .GetManagerAnswerByEvaluationIdAsync(EvaluationId);
 
-        if (existing == null)
-            result = await EvaluationService.AddManagerAnswerAsync(_request);
+        OperationResult result = existing == null
+            ? await EvaluationService.AddManagerAnswerAsync(_request)
+            : await EvaluationService.UpdateManagerAnswerAsync(_request);
+
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
         else
-            result = await EvaluationService.UpdateManagerAnswerAsync(_request);
-
-
-        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
-            ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+            Toast.ShowError(result.Message);
     }
 
 }

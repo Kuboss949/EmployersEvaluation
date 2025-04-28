@@ -4,19 +4,18 @@
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Services
 @inject IDepartmentService DepartmentService
+@inject IToastService Toast
 
 <div class="panel-fragment">
-    <div class="w-100 d-flex justify-content-center align-content-center">
-        <span class="display-5">Działy</span>
-    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddMainDepartmentForm">Dodaj</button>
     <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
-        <table class="table table-striped">
+        <table class="table table-striped table-bordered">
             <thead>
             <tr class="sticky-top my-sticky-top bg-white">
-                <th scope="col">ID</th>
-                <th scope="col">Nazwa działu</th>
-                <th scope="col">Aktywny</th>
-                <th scope="col">Dezaktywuj</th>
+                <th scope="col" class="text-center align-middle">ID</th>
+                <th scope="col" class="text-center align-middle">Nazwa działu</th>
+                <th scope="col" class="text-center align-middle">Aktywny</th>
+                <th scope="col" class="text-center align-middle">Dezaktywuj</th>
             </tr>
             </thead>
             <tbody>
@@ -26,7 +25,7 @@
                     <th scope="row">@dep.MainDepartmentId</th>
                     <td>@dep.Name</td>
                     <td>@dep.Enabled</td>
-                    <td class="align-content-center">
+                    <td class="text-center align-middle">
                         <button class="btn btn-danger" @onclick="@(() => ToggleMainDepartmentEnableStatus(dep.MainDepartmentId))">
                             <i class="bi bi-power"></i>
                         </button>
@@ -36,7 +35,6 @@
             </tbody>
         </table>
     </div>
-    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddMainDepartmentForm">Dodaj</button>
 </div>
 
 @code {
@@ -47,10 +45,14 @@
     {
         Modal.Show<AddMainDepartmentPopup>("Dodaj dział główny");
     }
-
-    void ToggleMainDepartmentEnableStatus(int depId)
+    
+    async Task ToggleMainDepartmentEnableStatus(int depId)
     {
-        DepartmentService.ToggleEnableMainDepartmentAsync(depId);
+        OperationResult result =  await DepartmentService.ToggleEnableMainDepartmentAsync(depId);
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
     
     

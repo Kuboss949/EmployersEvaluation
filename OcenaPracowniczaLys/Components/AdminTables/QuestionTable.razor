@@ -5,22 +5,22 @@
 @using OcenaPracowniczaLys.Services
 @inject IDepartmentService DepartmentService
 @inject IQuestionService QuestionService
+@inject IToastService Toast
+
 
 <div class="panel-fragment">
-    <div class="w-100 d-flex justify-content-center align-content-center">
-        <span class="display-5">Pytania</span>
-    </div>
+    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddQuestionForm">Dodaj</button>
     <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
-        <table class="table table-striped">
+        <table class="table table-striped table-bordered">
             <thead>
             <tr class="sticky-top my-sticky-top bg-white">
-                <th scope="col">ID</th>
-                <th scope="col">Dział</th>
-                <th scope="col">Priorytet</th>
-                <th scope="col">Pytanie</th>
-                <th scope="col">Aktywny</th>
-                <th scope="col">Dezaktywuj</th>
-                <th scope="col">Zmiana priorytetu</th>
+                <th scope="col" class="text-center align-middle">ID</th>
+                <th scope="col" class="text-center align-middle">Dział</th>
+                <th scope="col" class="text-center align-middle">Priorytet</th>
+                <th scope="col" class="text-center align-middle">Pytanie</th>
+                <th scope="col" class="text-center align-middle">Aktywny</th>
+                <th scope="col" class="text-center align-middle">Dezaktywuj</th>
+                <th scope="col" class="text-center align-middle">Zmiana priorytetu</th>
             </tr>
             </thead>
             <tbody>
@@ -32,12 +32,12 @@
                     <td>@q.Priority</td>
                     <td>@q.QuestionText</td>
                     <td>@q.Enabled</td>
-                    <td class="align-content-center">
+                    <td class="text-center align-middle">
                         <button class="btn btn-danger" @onclick="@(() => ToggleQuestionEnableStatus(q.QuestionId))">
                             <i class="bi bi-power"></i>
                         </button>
                     </td>
-                    <td class="align-content-center">
+                    <td class="text-center align-middle">
                         <button class="btn btn-primary" 
                                 @onclick="@(() => ShowChangeQuestionPriorityForm(q.QuestionId))">
                             <i class="bi bi-gear-fill"></i>
@@ -48,7 +48,6 @@
             </tbody>
         </table>
     </div>
-    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddQuestionForm">Dodaj</button>
 </div>
 
 @code {
@@ -60,9 +59,13 @@
         Modal.Show<AddQuestionPopup>("Dodaj pytanie");
     }
 
-    void ToggleQuestionEnableStatus(int depId)
+    async Task ToggleQuestionEnableStatus(int questionId)
     {
-        QuestionService.ToggleEnabledQuestionAsync(depId);
+        OperationResult result =  await QuestionService.ToggleEnabledQuestionAsync(questionId);
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
     
     void ShowChangeQuestionPriorityForm(int questionId)

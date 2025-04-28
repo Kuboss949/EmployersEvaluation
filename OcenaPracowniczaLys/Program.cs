@@ -1,12 +1,13 @@
 using Blazored.Modal;
+using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Authorization;
 using OcenaPracowniczaLys;
 using OcenaPracowniczaLys.AuthenticationProvider;
 using OcenaPracowniczaLys.Components;
 using OcenaPracowniczaLys.Context;
-using OcenaPracowniczaLys.Data;
 using OcenaPracowniczaLys.Repository;
 using OcenaPracowniczaLys.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddBlazoredToast();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

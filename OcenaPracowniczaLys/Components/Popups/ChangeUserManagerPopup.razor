@@ -4,6 +4,7 @@
 @using OcenaPracowniczaLys.Models
 @using OcenaPracowniczaLys.Services
 @inject IUserService UserService
+@inject IToastService Toast
 
 
 <EditForm Model="@_changeManagerModel" OnValidSubmit="HandleChangeManager" FormName="UserChangeManagerForm">
@@ -29,19 +30,11 @@
     </div>
 
     <button class="btn btn-primary mt-3" type="submit">Zmień</button>
-    @if (!string.IsNullOrEmpty(_infoMessage))
-    {
-        <div class="@_infoClass mt-3">
-            @_infoMessage
-        </div>
-    }
 </EditForm>
 @code {
     
     [Parameter] public int UserId { get; set; }
     private ChangeManagerModel _changeManagerModel = new ChangeManagerModel();
-    private string _infoMessage = "";
-    private string _infoClass = "invisible"; // lub "d-none"
     private List<User> _users = [];
     protected override async Task OnInitializedAsync()
     {
@@ -52,16 +45,16 @@
     {
         if (_changeManagerModel.ManagerId < 0)
         {
-            _infoMessage = "Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione.";
-            _infoClass = "alert alert-danger";
+            Toast.ShowError("Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione.");
             return;
         }
 
         OperationResult result = await UserService.ChangeUserManagerAsync(UserId, _changeManagerModel.ManagerId);
 
-        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
-            ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
 
 }

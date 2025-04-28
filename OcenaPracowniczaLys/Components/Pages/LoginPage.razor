@@ -1,12 +1,9 @@
 @page "/login"
 @rendermode InteractiveServer
-@using Microsoft.AspNetCore.Components.Authorization
 @using OcenaPracowniczaLys.AuthenticationProvider
-@using OcenaPracowniczaLys.Models
-@using OcenaPracowniczaLys.Services
-@inject IAuthService AuthService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IToastService Toast
 
 <div id="main-container">
     <EditForm Model="@_loginRequest" OnValidSubmit="HandleLogin" FormName="UserLoginForm">
@@ -15,8 +12,7 @@
 
         <label for="password">Hasło</label>
         <InputText id="password" @bind-Value="_loginRequest.Password" type="password"/>
-
-        <span class="status-indicator">@_status</span>
+        
 
         <button type="submit">Login</button>
     </EditForm>
@@ -37,12 +33,13 @@
             _isProcessing = true;
             var appAuthStateProvider = (AppAuthStateProvider)AuthenticationStateProvider;
             var token = await appAuthStateProvider.Login(_loginRequest);
+            Toast.ShowSuccess("Zalogowano poprawnie!");
             NavigationManager.NavigateTo($"/postlogin?token={token}", forceLoad: true);
 
         }
         catch (Exception ex)
         {
-            _status = "Nieprawidłowe dane logowania";
+            Toast.ShowError("Nieprawidłowe dane logowania");
         }
         finally
         {

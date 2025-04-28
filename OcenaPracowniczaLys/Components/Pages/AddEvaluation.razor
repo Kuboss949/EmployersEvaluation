@@ -9,6 +9,8 @@
 @inject IEvaluationService EvaluationService
 @inject IDepartmentService DepartmentService
 @inject IQuestionService QuestionService
+@inject IToastService Toast
+
 
 @if (_isLoading)
 {
@@ -104,18 +106,8 @@ else
                                            @bind-Value="entry.Answer" />
                         </div>
                     }
-                        @* <div class="mt-2 d-flex flex-column"> *@
-                        @*     <label class="form-label" for="@($"question4")">@_productionQuestions[4]</label> *@
-                        @*     <InputTextArea id="@($"question4")" *@
-                        @*                    @bind-Value="_request.Questions[4]"> *@
-                        @*     </InputTextArea> *@
-                        @* </div> *@
-                    
                     <button class="mt-5 mb-5" type="submit">Dodaj</button>
                 </EditForm>
-                <div class="@_infoClass">
-                    @_infoMessage
-                </div>
             </div>
         </div>
     </div>
@@ -129,8 +121,6 @@ else
     private List<MainDepartment> _mainDepartments = [];
     private List<Question> _questions = [];
     private List<Question> _questionsFiltered = [];
-    private string _infoMessage = "";
-    private string _infoClass = "invisible";
     private bool _isLoading = true;
 
 
@@ -164,15 +154,16 @@ else
     {
         if (!_request.IsFull())
         {
-            _infoMessage = "Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione";
-            _infoClass = "alert alert-danger";
+            Toast.ShowError("Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione");
             return;
         }
 
         OperationResult result = await EvaluationService.AddEvaluationAsync(_request);
         
-        _infoClass = result.Status.Equals("Success") ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
         
     }
 }

@@ -6,43 +6,98 @@
 @using OcenaPracowniczaLys.Data
 @using OcenaPracowniczaLys.Services
 @using OcenaPracowniczaLys.Components.AdminTables
+
 @inject IUserService UserService
 @inject IDepartmentService DepartmentService
 @inject IQuestionService QuestionService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Nav
 
-
-<div class="container min-vh-100 d-flex">
+<div class="container-fluid min-vh-100 d-flex">
     <div class="row w-100">
-        <div class="col-md-12">
-            <UserTable Users="@_users"/>
-            <DepartmentTable Departments="@_departments"></DepartmentTable>
-            <QuestionTable Questions="@_questions"></QuestionTable>
-            <MainDepartmentTable MainDepartments="@_mainDepartments"></MainDepartmentTable>
+        <div class="col-3">
+            <nav class="nav flex-column nav-pills">
+                <a class="nav-link @GetNavClass(Section.Users)"
+                   href="javascript:void(0)"
+                   @onclick="() => SelectSection(Section.Users)">
+                    Użytkownicy
+                </a>
+                <a class="nav-link @GetNavClass(Section.Departments)"
+                   href="javascript:void(0)"
+                   @onclick="() => SelectSection(Section.Departments)">
+                    Działy
+                </a>
+                <a class="nav-link @GetNavClass(Section.MainDepartments)"
+                   href="javascript:void(0)"
+                   @onclick="() => SelectSection(Section.MainDepartments)">
+                    Główne działy
+                </a>
+                <a class="nav-link @GetNavClass(Section.Questions)"
+                   href="javascript:void(0)"
+                   @onclick="() => SelectSection(Section.Questions)">
+                    Pytania
+                </a>
+            </nav>
+        </div>
+
+        <div class="col-9">
+            @switch (CurrentSection)
+            {
+                case Section.Users:
+                    <UserTable Users="@_users" />
+                    break;
+                case Section.Departments:
+                    <DepartmentTable Departments="@_departments" />
+                    break;
+                case Section.MainDepartments:
+                    <MainDepartmentTable MainDepartments="@_mainDepartments" />
+                    break;
+                case Section.Questions:
+                    <QuestionTable Questions="@_questions" />
+                    break;
+            }
         </div>
     </div>
 </div>
 
-
 @code {
-    private List<User> _users = [];
-    private List<Department> _departments = [];
-    private List<MainDepartment> _mainDepartments = [];
-    private List<Question> _questions = [];
-    [CascadingParameter] public IModalService Modal { get; set; }
-    
+    enum Section
+    {
+        Users,
+        Departments,
+        MainDepartments,
+        Questions
+    }
+
+    Section CurrentSection = Section.Users;
+
+    private List<User> _users = new();
+    private List<Department> _departments = new();
+    private List<MainDepartment> _mainDepartments = new();
+    private List<Question> _questions = new();
+
     protected override async Task OnInitializedAsync()
     {
         var appAuthStateProvider = (AppAuthStateProvider)AuthenticationStateProvider;
         var authState = await appAuthStateProvider.GetAuthenticationStateAsync();
-        if (!authState.User.Identity?.IsAuthenticated == true && !authState.User.IsInRole("admin"))
+        if (!authState.User.Identity?.IsAuthenticated == true
+            || !authState.User.IsInRole("admin"))
         {
             Nav.NavigateTo("/login");
+            return;
         }
-        _users = await UserService.GetAllUsersAsync();
-        _departments = await DepartmentService.GetAllDepartmentsAsync();
-        _mainDepartments = await DepartmentService.GetAllMainDepartmentsAsync();
-        _questions = await QuestionService.GetQuestionsAsync();
+
+        _users            = await UserService.GetAllUsersAsync();
+        _departments      = await DepartmentService.GetAllDepartmentsAsync();
+        _mainDepartments  = await DepartmentService.GetAllMainDepartmentsAsync();
+        _questions        = await QuestionService.GetQuestionsAsync();
     }
+
+    void SelectSection(Section section)
+    {
+        CurrentSection = section;
+    }
+
+    string GetNavClass(Section section)
+        => section == CurrentSection ? "active" : "";
 }

@@ -5,6 +5,7 @@
 @using OcenaPracowniczaLys.Services
 @inject IDepartmentService DepartmentService
 @inject IUserService UserService
+@inject IToastService Toast
 
 <EditForm Model="@_request" OnValidSubmit="HandleCreateDepartment" FormName="UserChangePasswordForm">
     <DataAnnotationsValidator />
@@ -32,12 +33,6 @@
     </div>
 
     <button class="btn btn-primary mt-3" type="submit">Dodaj</button>
-    @if (!string.IsNullOrEmpty(_infoMessage))
-    {
-        <div class="@_infoClass mt-3">
-            @_infoMessage
-        </div>
-    }
 </EditForm>
 @code {
     public class ChangeManagerModel
@@ -46,8 +41,6 @@
         public int ManagerId { get; set; } = -1;
     }
     private CreateDepartmentRequest _request = new CreateDepartmentRequest();
-    private string _infoMessage = "";
-    private string _infoClass = "invisible"; // lub "d-none"
     private List<User> _users = [];
 
     protected override async Task OnInitializedAsync()
@@ -59,9 +52,10 @@
     {
         OperationResult result = await DepartmentService.CreateDepartmentAsync(_request);
 
-        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
-            ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
 
 }

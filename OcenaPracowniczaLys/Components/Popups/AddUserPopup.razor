@@ -6,6 +6,8 @@
 @inject IModalService Modal
 @inject IUserService UserService
 @inject IRoleService RoleService
+@inject IToastService Toast
+
 <EditForm class="d-flex flex-column  justify-content-center" Model="@_request"
           OnValidSubmit="HandleUserAdd" FormName="UserAddForm">
     <DataAnnotationsValidator />
@@ -82,14 +84,15 @@
     {
         if (!_request.IsValid())
         {
-            _infoMessage = "Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione";
-            _infoClass = "alert alert-danger";
+            Toast.ShowError("Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione");
             return;
         }
         OperationResult result = await UserService.AddUserAsync(_request);
         
-        _infoClass = result.Status.Equals("Success") ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
         _request = new AddUserRequest();
     }
 }

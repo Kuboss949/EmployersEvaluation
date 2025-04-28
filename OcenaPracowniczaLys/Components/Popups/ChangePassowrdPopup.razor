@@ -3,6 +3,7 @@
 @using Microsoft.IdentityModel.Tokens
 @using OcenaPracowniczaLys.Models
 @using OcenaPracowniczaLys.Services
+@inject IToastService Toast
 @inject IUserService UserService
 
 <EditForm Model="@_newPasswordModel" OnValidSubmit="HandleChangePassword" FormName="UserChangePasswordForm">
@@ -17,13 +18,6 @@
     <button class="btn btn-primary mt-3" type="submit">Zmień</button>
 </EditForm>
 
-@if (!string.IsNullOrEmpty(_infoMessage))
-{
-    <div class="@_infoClass mt-3">
-        @_infoMessage
-    </div>
-}
-
 @code {
     // Model do walidacji – możesz użyć atrybutów walidacji z System.ComponentModel.DataAnnotations
     public class ChangePasswordModel
@@ -34,8 +28,7 @@
     }
 
     private ChangePasswordModel _newPasswordModel = new ChangePasswordModel();
-    private string _infoMessage = "";
-    private string _infoClass = "invisible";
+    
 
     [Parameter] public int UserId { get; set; }
 
@@ -43,16 +36,17 @@
     {
         if (string.IsNullOrWhiteSpace(_newPasswordModel.NewPassword))
         {
-            _infoMessage = "Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione.";
-            _infoClass = "alert alert-danger";
+            Toast.ShowError("Ups! Chyba coś zapomniałeś/aś wypełnić. " +
+                            "Sprawdź czy wszystkie wymagane pola są zapełnione.");
             return;
         }
         
         OperationResult result = await UserService.ChangePasswordAdminAsync(UserId, _newPasswordModel.NewPassword);
 
-        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
-            ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
         _newPasswordModel.NewPassword = "";
     }
 }

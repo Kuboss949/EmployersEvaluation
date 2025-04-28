@@ -1,6 +1,8 @@
 @using OcenaPracowniczaLys.Models
 @using OcenaPracowniczaLys.Services
 @inject IDepartmentService DepartmentService
+@inject IToastService Toast
+
 
 <EditForm Model="@_request" OnValidSubmit="HandleAddMainDepartment" FormName="UserChangePasswordForm">
     <DataAnnotationsValidator />
@@ -10,26 +12,19 @@
         <InputText class="form-control" id="name" @bind-Value="_request.Name"/>
     </span>
     <button class="btn btn-primary mt-3" type="submit">Dodaj</button>
-    @if (!string.IsNullOrEmpty(_infoMessage))
-    {
-        <div class="@_infoClass mt-3">
-            @_infoMessage
-        </div>
-    }
 </EditForm>
 @code {
 
     private AddMainDepartmentRequest _request = new AddMainDepartmentRequest();
-    private string _infoMessage = "";
-    private string _infoClass = "invisible";
 
     private async Task HandleAddMainDepartment(EditContext arg)
     {
         OperationResult result = await DepartmentService.AddMainDepartmentAsync(_request);
 
-        _infoClass = result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase)
-            ? "alert alert-success" : "alert alert-danger";
-        _infoMessage = result.Message;
+        if (result.IsSuccess())
+            Toast.ShowSuccess(result.Message);
+        else
+            Toast.ShowError(result.Message);
     }
 
 }
