@@ -21,7 +21,7 @@ public class UserRepository : IUserRepository
 
     public async Task<List<User>> GetAllSupervisorsAsync()
     {
-        return await _context.Users.Where(u => u.RoleId != 2 && u.Enabled).ToListAsync();
+        return await _context.Users.Where(u => u.RoleId != 2 && u.Enabled).OrderBy(u => u.FullName).ToListAsync();
     }
 
     public async Task<OperationResult> AddUserAsync(User user)
@@ -134,7 +134,7 @@ public class UserRepository : IUserRepository
         return result;
     }
 
-    public async Task<OperationResult> ChangeUserManagerAsync(int userId, int newManagerId)
+    public async Task<OperationResult> ChangeUserManagerAsync(int userId, int? newManagerId)
     {
         var result = new OperationResult();
         

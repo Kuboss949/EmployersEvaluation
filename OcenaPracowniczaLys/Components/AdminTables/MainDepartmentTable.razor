@@ -43,7 +43,10 @@
     
     void ShowAddMainDepartmentForm()
     {
-        Modal.Show<AddMainDepartmentPopup>("Dodaj dział główny");
+        var options = new ModalOptions { };
+        var parameters = new ModalParameters()
+            .Add(nameof(AddMainDepartmentPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
+        Modal.Show<AddMainDepartmentPopup>("Dodaj dział główny", parameters, options);
     }
     
     async Task ToggleMainDepartmentEnableStatus(int depId)
@@ -55,5 +58,10 @@
             Toast.ShowError(result.Message);
     }
     
+    private async Task ReloadData()
+    {
+        MainDepartments = await DepartmentService.GetAllMainDepartmentsAsync();
+        StateHasChanged(); 
+    }
     
 }

@@ -66,6 +66,7 @@
         </div>
 
 @code {
+    [Parameter] public EventCallback OnUserAdd { get; set; }
     private AddUserRequest _request = new AddUserRequest();
     private List<Role> _roles = [];
     private List<User> _users = [];
@@ -90,9 +91,14 @@
         OperationResult result = await UserService.AddUserAsync(_request);
         
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnUserAdd.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
         _request = new AddUserRequest();
     }
 }

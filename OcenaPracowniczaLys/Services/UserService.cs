@@ -49,7 +49,7 @@ public class UserService : IUserService
         return await _userRepository.ChangePasswordAdminAsync(userId, newPassword);
     }
 
-    public async Task<OperationResult> ChangeUserManagerAsync(int userId, int newManagerId)
+    public async Task<OperationResult> ChangeUserManagerAsync(int userId, int? newManagerId)
     {
         return await _userRepository.ChangeUserManagerAsync(userId, newManagerId);
     }

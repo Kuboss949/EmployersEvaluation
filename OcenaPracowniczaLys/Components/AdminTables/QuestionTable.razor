@@ -56,7 +56,10 @@
 
     void ShowAddQuestionForm()
     {
-        Modal.Show<AddQuestionPopup>("Dodaj pytanie");
+        var options = new ModalOptions { };
+        var parameters = new ModalParameters()
+            .Add(nameof(ChangeQuestionPriorityPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
+        Modal.Show<AddQuestionPopup>("Dodaj pytanie", parameters, options);
     }
 
     async Task ToggleQuestionEnableStatus(int questionId)
@@ -70,10 +73,17 @@
     
     void ShowChangeQuestionPriorityForm(int questionId)
     {
+        var options = new ModalOptions { };
         var parameters = new ModalParameters()
-            .Add(nameof(ChangeQuestionPriorityPopup.QuestionId), questionId);
-        Modal.Show<ChangeQuestionPriorityPopup>("Zmień priorytet pytania", parameters);
+            .Add(nameof(ChangeQuestionPriorityPopup.QuestionId), questionId)
+            .Add(nameof(ChangeQuestionPriorityPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
+        Modal.Show<ChangeUserManagerPopup>("Zmień priorytet", parameters, options);
     }
     
+    private async Task ReloadData()
+    {
+        Questions = await QuestionService.GetQuestionsAsync();
+        StateHasChanged(); 
+    }
 
 }

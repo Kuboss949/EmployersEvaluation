@@ -14,7 +14,7 @@
     <button class="btn btn-primary mt-3" type="submit">Dodaj</button>
 </EditForm>
 @code {
-
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
     private AddMainDepartmentRequest _request = new AddMainDepartmentRequest();
 
     private async Task HandleAddMainDepartment(EditContext arg)
@@ -22,9 +22,14 @@
         OperationResult result = await DepartmentService.AddMainDepartmentAsync(_request);
 
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnPopupSubmit.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
     }
 
 }

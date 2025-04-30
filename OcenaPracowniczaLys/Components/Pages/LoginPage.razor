@@ -5,21 +5,29 @@
 @inject NavigationManager NavigationManager
 @inject IToastService Toast
 
-<div id="main-container">
-    <EditForm Model="@_loginRequest" OnValidSubmit="HandleLogin" FormName="UserLoginForm">
-        <label for="login">Login</label>
-        <InputText id="login" @bind-Value="_loginRequest.Login"/>
+<div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+        <h2 class="text-center mb-4">Logowanie</h2>
 
-        <label for="password">Hasło</label>
-        <InputText id="password" @bind-Value="_loginRequest.Password" type="password"/>
-        
+        <EditForm Model="@_loginRequest" OnValidSubmit="HandleLogin" FormName="UserLoginForm">
+            <div class="mb-3">
+                <label for="login" class="form-label">Login</label>
+                <InputText id="login" @bind-Value="_loginRequest.Login" class="form-control" />
+            </div>
 
-        <button type="submit">Login</button>
-    </EditForm>
+            <div class="mb-4">
+                <label for="password" class="form-label">Hasło</label>
+                <InputText id="password" @bind-Value="_loginRequest.Password" type="password" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Zaloguj się
+            </button>
+        </EditForm>
+    </div>
 </div>
 
 @code {
-
     private AppLoginRequest _loginRequest = new AppLoginRequest();
     private string _status = "";
     private bool _isProcessing = false;
@@ -35,7 +43,6 @@
             var token = await appAuthStateProvider.Login(_loginRequest);
             Toast.ShowSuccess("Zalogowano poprawnie!");
             NavigationManager.NavigateTo($"/postlogin?token={token}", forceLoad: true);
-
         }
         catch (Exception ex)
         {
@@ -46,7 +53,4 @@
             _isProcessing = false;
         }
     }
-    
-    
-
 }

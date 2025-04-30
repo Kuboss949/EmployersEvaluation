@@ -132,4 +132,9 @@ public class EvaluationService : IEvaluationService
         // 5) Zapisz zmiany
         return await _repository.UpdateManagerAnswerAsync(entity);
     }
+
+    public async Task<List<int>> GetEvaluationAnswerAuthorizedUsersAsync(int userId)
+    {
+        return await _repository.GetEvaluationAnswerAuthorizedUsersAsync(userId);
+    }
 }

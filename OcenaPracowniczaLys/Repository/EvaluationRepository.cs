@@ -166,6 +166,33 @@ public class EvaluationRepository : IEvaluationRepository
         _context.ManagerAnswersTexts.RemoveRange(texts);
     }
 
+    public async Task<List<int>> GetEvaluationAnswerAuthorizedUsersAsync(int managerId)
+    {
+        var result = new List<int>();
+        var queue = new Queue<int>();
+        result.Add(managerId);
+        queue.Enqueue(managerId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+
+            // Pobrane tylko Id rodziców
+            int supervisorId = await _context.Users
+                .Where(u => u.UserId == current)
+                .Select(u => u.ManagerId ?? -1)
+                .FirstOrDefaultAsync();
+
+            if (supervisorId != -1)
+            {
+                result.Add(supervisorId);
+                queue.Enqueue(supervisorId);
+            }
+        }
+
+        return result;
+    }
+
 
     private async Task<List<int>> GetSubordinateIdsAsync(int managerId)
     {

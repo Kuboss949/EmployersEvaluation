@@ -35,6 +35,8 @@
     <button class="btn btn-primary mt-3" type="submit">Dodaj</button>
 </EditForm>
 @code {
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
+
     public class ChangeManagerModel
     {
         [Required(ErrorMessage = "Pole jest wymagane")]
@@ -53,9 +55,16 @@
         OperationResult result = await DepartmentService.CreateDepartmentAsync(_request);
 
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnPopupSubmit.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
+
+        _request = new CreateDepartmentRequest();
     }
 
 }

@@ -15,5 +15,5 @@ public interface IEvaluationRepository
 
     void RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts);
 
-
+    Task<List<int>> GetEvaluationAnswerAuthorizedUsersAsync(int userId); 
 }

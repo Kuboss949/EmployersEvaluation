@@ -51,7 +51,11 @@
     
     void ShowCreateDepartmentForm()
     {
-        Modal.Show<CreateDepartmentPopup>("Dodaj dział");
+        
+        var options = new ModalOptions { };
+        var parameters = new ModalParameters()
+            .Add(nameof(CreateDepartmentPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
+        Modal.Show<CreateDepartmentPopup>("Dodaj dział", parameters, options);
     }
 
     async Task ToggleDepartmentEnableStatus(int depId)
@@ -65,9 +69,17 @@
 
     void ShowChangeDepartmentForm(int depId)
     {
+        var options = new ModalOptions { };
         var parameters = new ModalParameters()
-            .Add(nameof(ChangeDepartmentPopup.DepartmentId), depId);
-        Modal.Show<ChangeDepartmentPopup>("Zmień kierownika", parameters);
+            .Add(nameof(ChangeDepartmentPopup.DepartmentId), depId)
+            .Add(nameof(ChangeDepartmentPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
+        Modal.Show<ChangeDepartmentPopup>("Zmień kierownika", parameters, options);
+        
     }
     
+    private async Task ReloadData()
+    {
+        Departments = await DepartmentService.GetAllDepartmentsAsync();
+        StateHasChanged(); 
+    }
 }

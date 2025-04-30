@@ -21,6 +21,7 @@
             else
             {
                 <option value="-1">Wybierz Kierownika</option>
+                <option value="-100">Brak kierownika</option>
                 @foreach (var u in _users.Where(u=>u.Enabled))
                 {
                     <option value="@u.UserId">@u.FullName</option>
@@ -32,7 +33,7 @@
     <button class="btn btn-primary mt-3" type="submit">Zmień</button>
 </EditForm>
 @code {
-    
+    [Parameter] public EventCallback OnManagerChanged { get; set; }
     [Parameter] public int UserId { get; set; }
     private ChangeManagerModel _changeManagerModel = new ChangeManagerModel();
     private List<User> _users = [];
@@ -43,18 +44,23 @@
 
     private async Task HandleChangeManager()
     {
-        if (_changeManagerModel.ManagerId < 0)
+        if (_changeManagerModel.ManagerId == -1)
         {
             Toast.ShowError("Ups! Chyba coś zapomniałeś/aś wypełnić. Sprawdź czy wszystkie wymagane pola są zapełnione.");
             return;
         }
-
-        OperationResult result = await UserService.ChangeUserManagerAsync(UserId, _changeManagerModel.ManagerId);
+        int? managerIdToUpdate = _changeManagerModel.ManagerId == -100 ? null : _changeManagerModel.ManagerId;
+        OperationResult result = await UserService.ChangeUserManagerAsync(UserId, managerIdToUpdate);
 
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnManagerChanged.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
     }
 
 }

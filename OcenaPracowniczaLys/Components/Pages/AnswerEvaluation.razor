@@ -1,7 +1,9 @@
 @page "/odpowiedz-na-ocene/{EvaluationId:int}"
+@using OcenaPracowniczaLys.AuthenticationProvider
 @inject IEvaluationService EvaluationService
 @inject IQuestionService QuestionService
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IToastService Toast
 
 <div class="container min-vh-100 d-flex">
@@ -73,8 +75,10 @@
 
 @code {
     [Parameter] public int EvaluationId { get; set; }
+    private int _userId = 0;
     Evaluation? _evaluation = new Evaluation();
     AddManagerAnswerRequest _request = new AddManagerAnswerRequest();
+    private List<int> _authorizedUsersIds = new List<int>();
 
     List<Question>? _questions;
     // private string _infoMessage = "";
@@ -84,8 +88,19 @@
     //TODO zabezpieczyć checkiem czy dobry user chce odpowiadać -> uwaga na hierarchie! 
     protected override async Task OnParametersSetAsync()
     {
+        var appAuthStateProvider = (AppAuthStateProvider)AuthenticationStateProvider;
+        var authState = await appAuthStateProvider.GetAuthenticationStateAsync();
+        
+        var user = authState.User;
+        var userIdClaim = user.FindFirst("UserId");
+        if (userIdClaim != null)
+        {
+            _userId = int.Parse(userIdClaim.Value);
+        }
+        
         _evaluation = await EvaluationService.GetEvaluationByIdAsync(EvaluationId);
-        if (_evaluation == null)
+        _authorizedUsersIds = await EvaluationService.GetEvaluationAnswerAuthorizedUsersAsync(_evaluation.ManagerId);
+        if (_evaluation == null || !_authorizedUsersIds.Contains(_userId))
         {
             Nav.NavigateTo("/odpowiedzi");
             return;

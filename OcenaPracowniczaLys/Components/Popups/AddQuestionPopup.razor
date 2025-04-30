@@ -1,8 +1,4 @@
-@using System.ComponentModel.DataAnnotations
 @using Microsoft.IdentityModel.Tokens
-@using OcenaPracowniczaLys.Data
-@using OcenaPracowniczaLys.Models
-@using OcenaPracowniczaLys.Services
 @inject IDepartmentService DepartmentService
 @inject IQuestionService QuestionService
 @inject IToastService Toast
@@ -39,6 +35,8 @@
     <button class="btn btn-primary mt-3" type="submit">Dodaj</button>
 </EditForm>
 @code {
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
+
     private AddQuestionRequest _request = new AddQuestionRequest();
 
     private List<MainDepartment> _mainDepartments = [];
@@ -53,9 +51,16 @@
         OperationResult result = await QuestionService.AddQuestionAsync(_request);
 
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnPopupSubmit.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
+
+        _request = new AddQuestionRequest();
     }
 
 }

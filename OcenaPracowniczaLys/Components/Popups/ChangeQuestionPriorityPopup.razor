@@ -25,6 +25,7 @@
         [Range(1, int.MaxValue, ErrorMessage = "Priorytet musi być większy od 0")]
         public int Priority { get; set; }
     }
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
     [Parameter] public int QuestionId { get; set; }
     private ChangePriorityModel _model = new();
 
@@ -33,9 +34,14 @@
         OperationResult result = await QuestionService.ChangeQuestionPriorityAsync(QuestionId, _model.Priority);
 
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnPopupSubmit.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
     }
 
 }

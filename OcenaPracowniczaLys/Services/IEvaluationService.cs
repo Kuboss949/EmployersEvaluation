@@ -12,6 +12,7 @@ public interface IEvaluationService
     Task<OperationResult> AddManagerAnswerAsync(AddManagerAnswerRequest request);
     Task<ManagerAnswer?> GetManagerAnswerByEvaluationIdAsync(int evaluationId);
     Task<OperationResult> UpdateManagerAnswerAsync(AddManagerAnswerRequest request);
+    Task<List<int>> GetEvaluationAnswerAuthorizedUsersAsync(int userId); 
 
     
 }

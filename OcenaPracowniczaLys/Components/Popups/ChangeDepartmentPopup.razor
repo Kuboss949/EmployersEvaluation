@@ -32,7 +32,8 @@
 
     <button class="btn btn-primary mt-3" type="submit">Zmień</button>
 </EditForm>
-@code {
+@code {    
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
     [Parameter] public int DepartmentId { get; set; }
     private ChangeManagerModel _changeManagerModel = new ChangeManagerModel();
     private string _infoMessage = "";
@@ -54,9 +55,14 @@
         OperationResult result = await DepartmentService.ChangeDepartmentManagerAsync(DepartmentId,_changeManagerModel.ManagerId);
 
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await OnPopupSubmit.InvokeAsync();
+        }
         else
+        {
             Toast.ShowError(result.Message);
+        }
     }
 
 }

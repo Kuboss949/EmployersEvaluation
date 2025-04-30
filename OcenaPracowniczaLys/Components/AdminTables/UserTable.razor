@@ -15,7 +15,7 @@
     <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
         <table class="table table-striped table-bordered">
             <thead>
-            <tr class="sticky-top my-sticky-top bg-whit">
+            <tr class="sticky-top my-sticky-top bg-white">
                 <th scope="col" class="text-center align-middle">ID</th>
                 <th scope="col" class="text-center align-middle">Imię i nazwisko</th>
                 <th scope="col" class="text-center align-middle">Login</th>
@@ -63,7 +63,11 @@
     
     void ShowAddUserForm()
     {
-        Modal.Show<AddUserPopup>("Dodaj użytkownika");
+        
+        var options = new ModalOptions { };
+        var parameters = new ModalParameters()
+            .Add(nameof(AddUserPopup.OnUserAdd), EventCallback.Factory.Create(this, ReloadUsers));
+        Modal.Show<AddUserPopup>("Dodaj użytkownika", parameters, options);
     }
 
     async Task ToggleEnableStatus(int userId)
@@ -84,8 +88,16 @@
     
     void ShowChangeUserManagerForm(int userId)
     {
+        var options = new ModalOptions { };
         var parameters = new ModalParameters()
-            .Add(nameof(ChangeUserManagerPopup.UserId), userId);
-        Modal.Show<ChangeUserManagerPopup>("Zmień kierownika", parameters);
+            .Add(nameof(ChangeUserManagerPopup.UserId), userId)
+            .Add(nameof(ChangeUserManagerPopup.OnManagerChanged), EventCallback.Factory.Create(this, ReloadUsers));
+        Modal.Show<ChangeUserManagerPopup>("Zmień kierownika", parameters, options);
+    }
+    
+    private async Task ReloadUsers()
+    {
+        Users = await UserService.GetAllUsersAsync();
+        StateHasChanged(); 
     }
 }
