@@ -54,8 +54,8 @@
         
         var options = new ModalOptions { };
         var parameters = new ModalParameters()
-            .Add(nameof(CreateDepartmentPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
-        Modal.Show<CreateDepartmentPopup>("Dodaj dział", parameters, options);
+            .Add(nameof(AddDepartmentPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
+        Modal.Show<AddDepartmentPopup>("Dodaj dział", parameters, options);
     }
 
     async Task ToggleDepartmentEnableStatus(int depId)

@@ -33,7 +33,7 @@
     <button class="btn btn-primary mt-3" type="submit">Zmień</button>
 </EditForm>
 @code {
-    [Parameter] public EventCallback OnManagerChanged { get; set; }
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
     [Parameter] public int UserId { get; set; }
     private ChangeManagerModel _changeManagerModel = new ChangeManagerModel();
     private List<User> _users = [];
@@ -55,7 +55,7 @@
         if (result.IsSuccess())
         {
             Toast.ShowSuccess(result.Message);
-            await OnManagerChanged.InvokeAsync();
+            await OnPopupSubmit.InvokeAsync();
         }
         else
         {

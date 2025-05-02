@@ -85,6 +85,17 @@ public class EvaluationRepository : IEvaluationRepository
         return result;
     }
 
+    public async Task<List<Evaluation>> GetAllEvaluationsAsync()
+    {
+        return await _context.Evaluations
+            .Include(e => e.EmployeeAnswers)
+                .ThenInclude(answer => answer.Question)
+            .Include(e => e.Department)
+            .Include(e=>e.ManagerAnswer)
+            .ThenInclude(ma=>ma!.ManagerAnswersTexts)
+            .ToListAsync();
+    }
+
 
     public async Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId)
     {

@@ -6,6 +6,7 @@ namespace OcenaPracowniczaLys.Services;
 public interface IEvaluationService
 {
     Task<OperationResult> AddEvaluationAsync(AddEvaluationRequest request);
+    Task<List<Evaluation>> GetAllEvaluationsAsync();
     Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int userId);
     Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int userId);
     Task<Evaluation?> GetEvaluationByIdAsync(int evaluationId);

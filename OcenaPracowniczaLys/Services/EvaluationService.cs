@@ -45,6 +45,11 @@ public class EvaluationService : IEvaluationService
         return await _repository.AddEvaluationAsync(data);
     }
 
+    public async Task<List<Evaluation>> GetAllEvaluationsAsync()
+    {
+        return await _repository.GetAllEvaluationsAsync();
+    }
+
     public async Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId)
     {
         return await _repository.GetAllDirectEvaluationsAsync(UserId);

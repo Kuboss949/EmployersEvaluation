@@ -66,7 +66,7 @@
         
         var options = new ModalOptions { };
         var parameters = new ModalParameters()
-            .Add(nameof(AddUserPopup.OnUserAdd), EventCallback.Factory.Create(this, ReloadUsers));
+            .Add(nameof(AddUserPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
         Modal.Show<AddUserPopup>("Dodaj użytkownika", parameters, options);
     }
 
@@ -91,11 +91,11 @@
         var options = new ModalOptions { };
         var parameters = new ModalParameters()
             .Add(nameof(ChangeUserManagerPopup.UserId), userId)
-            .Add(nameof(ChangeUserManagerPopup.OnManagerChanged), EventCallback.Factory.Create(this, ReloadUsers));
+            .Add(nameof(ChangeUserManagerPopup.OnPopupSubmit), EventCallback.Factory.Create(this, ReloadData));
         Modal.Show<ChangeUserManagerPopup>("Zmień kierownika", parameters, options);
     }
     
-    private async Task ReloadUsers()
+    private async Task ReloadData()
     {
         Users = await UserService.GetAllUsersAsync();
         StateHasChanged(); 

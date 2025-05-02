@@ -66,7 +66,7 @@
         </div>
 
 @code {
-    [Parameter] public EventCallback OnUserAdd { get; set; }
+    [Parameter] public EventCallback OnPopupSubmit { get; set; }
     private AddUserRequest _request = new AddUserRequest();
     private List<Role> _roles = [];
     private List<User> _users = [];
@@ -93,7 +93,7 @@
         if (result.IsSuccess())
         {
             Toast.ShowSuccess(result.Message);
-            await OnUserAdd.InvokeAsync();
+            await OnPopupSubmit.InvokeAsync();
         }
         else
         {
