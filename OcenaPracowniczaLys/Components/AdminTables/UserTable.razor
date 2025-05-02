@@ -29,7 +29,7 @@
             <tbody>
             @foreach (var user in Users)
             {
-                <tr>
+                <tr class = "@(!user.Enabled ? "alert-danger" : "")">
                     <th scope="row">@user.UserId</th>
                     <td>@user.FullName</td>
                     <td>@user.Login</td>

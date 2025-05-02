@@ -23,7 +23,7 @@
             <tbody>
             @foreach (var dep in Departments)
             {
-                <tr>
+                <tr class = "@(!dep.Enabled ? "alert-danger" : "")">
                     <th scope="row">@dep.DepartmentId</th>
                     <td>@dep.Name</td>
                     <td>@dep.Manager?.FullName</td>
