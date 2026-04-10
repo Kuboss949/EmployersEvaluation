@@ -11,7 +11,12 @@
 
 
 <div class="panel-fragment">
-    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddUserForm">Dodaj</button>
+    <div class="d-flex gap-2 mt-2 mb-2">
+        <button class="btn btn-primary" @onclick="ShowAddUserForm">Dodaj</button>
+        <button class="btn btn-outline-secondary" @onclick="() => _showInactive = !_showInactive">
+            @(_showInactive ? "Ukryj nieaktywnych" : "Pokaż nieaktywnych")
+        </button>
+    </div>
     <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
         <table class="table table-striped table-bordered">
             <thead>
@@ -27,7 +32,7 @@
             </tr>
             </thead>
             <tbody>
-            @foreach (var user in Users)
+            @foreach (var user in Users.Where(u => u.Enabled || _showInactive).OrderBy(u => u.Enabled ? 0 : 1))
             {
                 <tr class = "@(!user.Enabled ? "alert-danger" : "")">
                     <th scope="row">@user.UserId</th>
@@ -60,6 +65,8 @@
 @code {
     [Parameter] public required List<User> Users { get; set; }
     [CascadingParameter] public IModalService Modal { get; set; }
+
+    private bool _showInactive = false;
     
     void ShowAddUserForm()
     {
@@ -74,7 +81,10 @@
     {
         OperationResult result = await UserService.ToggleEnableStatusAsync(userId);
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await ReloadData();
+        }
         else
             Toast.ShowError(result.Message);
     }

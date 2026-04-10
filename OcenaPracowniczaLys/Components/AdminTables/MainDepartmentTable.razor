@@ -7,7 +7,12 @@
 @inject IToastService Toast
 
 <div class="panel-fragment">
-    <button class="btn btn-primary mt-2 mb-2" @onclick="ShowAddMainDepartmentForm">Dodaj</button>
+    <div class="d-flex gap-2 mt-2 mb-2">
+        <button class="btn btn-primary" @onclick="ShowAddMainDepartmentForm">Dodaj</button>
+        <button class="btn btn-outline-secondary" @onclick="() => _showInactive = !_showInactive">
+            @(_showInactive ? "Ukryj nieaktywne" : "Pokaż nieaktywne")
+        </button>
+    </div>
     <div id="user-panel" class="admin-table overflow-auto border border-dark rounded mt-3">
         <table class="table table-striped table-bordered">
             <thead>
@@ -19,7 +24,7 @@
             </tr>
             </thead>
             <tbody>
-            @foreach (var dep in MainDepartments)
+            @foreach (var dep in MainDepartments.Where(d => d.Enabled || _showInactive).OrderBy(d => d.Enabled ? 0 : 1))
             {
                 <tr class = "@(!dep.Enabled ? "alert-danger" : "")">
                     <th scope="row">@dep.MainDepartmentId</th>
@@ -38,8 +43,10 @@
 </div>
 
 @code {
-    [Parameter] public required List<MainDepartment> MainDepartments { get; set; }    
+    [Parameter] public required List<MainDepartment> MainDepartments { get; set; }
     [CascadingParameter] public IModalService Modal { get; set; }
+
+    private bool _showInactive = false;
     
     void ShowAddMainDepartmentForm()
     {
@@ -51,9 +58,12 @@
     
     async Task ToggleMainDepartmentEnableStatus(int depId)
     {
-        OperationResult result =  await DepartmentService.ToggleEnableMainDepartmentAsync(depId);
+        OperationResult result = await DepartmentService.ToggleEnableMainDepartmentAsync(depId);
         if (result.IsSuccess())
+        {
             Toast.ShowSuccess(result.Message);
+            await ReloadData();
+        }
         else
             Toast.ShowError(result.Message);
     }
