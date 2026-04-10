@@ -1,0 +1,12 @@
+services:
+  ocena-pracownicza:
+    build:
+      context: ./OcenaPracowniczaLys
+    container_name: ocena-pracownicza
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "127.0.0.1:5000:5000"
