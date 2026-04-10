@@ -6,15 +6,15 @@ namespace OcenaPracowniczaLys.Repository;
 
 public class RoleRepository : IRoleRepository
 {
-    private AppDbContext _context;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public RoleRepository(AppDbContext context)
-    {
-        _context = context;
-    }
+
+    public RoleRepository(IDbContextFactory<AppDbContext> factory)
+        => _factory = factory;
 
     public async Task<List<Role>> GetAllRolesAsync()
     {
-        return await _context.Roles.ToListAsync();
+        await using var ctx = _factory.CreateDbContext();
+        return await ctx.Roles.ToListAsync();
     }
 }

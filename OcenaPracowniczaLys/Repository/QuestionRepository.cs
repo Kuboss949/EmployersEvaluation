@@ -1,42 +1,61 @@
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using OcenaPracowniczaLys.Context;
 using OcenaPracowniczaLys.Data;
+using OcenaPracowniczaLys.Exceptions;
 using OcenaPracowniczaLys.Models;
 
 namespace OcenaPracowniczaLys.Repository;
 
 public class QuestionRepository : IQuestionRepository
 {
-    private AppDbContext _context;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public QuestionRepository(AppDbContext context)
-    {
-        _context = context;
-    }
+
+    public QuestionRepository(IDbContextFactory<AppDbContext> factory)
+        => _factory = factory;
+
 
     public async Task<List<Question>> GetQuestionsAsync()
     {
-        return await _context.Questions
-            .Include(q => q.MainDepartment)
-            .OrderBy(q=>q.MainDepartmentId)
-            .ThenBy(q => q.Priority)
-            .ToListAsync();
+        try
+        {            
+            await using var ctx = _factory.CreateDbContext();
+            return await ctx.Questions
+                .Include(q => q.MainDepartment)
+                .OrderBy(q => q.MainDepartmentId)
+                .ThenBy(q => q.Priority)
+                .ToListAsync();
+        }
+        catch (DbException ex)
+        {
+            throw new DataUnavailableException(ex);
+        }
     }
 
     public async Task<List<Question>> GetEnabledQuestionsAsync()
     {
-        return await _context.Questions
-            .Where(q=>q.Enabled == true)
-            .OrderBy(q=>q.MainDepartmentId)
-            .ThenBy(q => q.Priority)
-            .ToListAsync();
+        try
+        {
+            await using var ctx = _factory.CreateDbContext();
+            return await ctx.Questions
+                .Where(q => q.Enabled)
+                .OrderBy(q => q.MainDepartmentId)
+                .ThenBy(q => q.Priority)
+                .ToListAsync();
+        }
+        catch (DbException ex)
+        {
+            throw new DataUnavailableException(ex);
+        }
     }
 
     public async Task<OperationResult> ToggleEnabledQuestionAsync(int questionId)
     {
         var result = new OperationResult();
         
-        var question = _context.Questions.FirstOrDefault(q => q.QuestionId == questionId);
+        await using var ctx = _factory.CreateDbContext();
+        var question = ctx.Questions.FirstOrDefault(q => q.QuestionId == questionId);
         if ( question == null)
         {
             result.Status = "Failed";
@@ -47,7 +66,7 @@ public class QuestionRepository : IQuestionRepository
         try
         {
             question.Enabled = !question.Enabled;
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -82,8 +101,9 @@ public class QuestionRepository : IQuestionRepository
 
         try
         {
-            _context.Questions.Add(question);
-            int status = await _context.SaveChangesAsync();
+            await using var ctx = _factory.CreateDbContext();
+            ctx.Questions.Add(question);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -109,7 +129,8 @@ public class QuestionRepository : IQuestionRepository
     {
         var result = new OperationResult();
         
-        var question = _context.Questions.FirstOrDefault(q => q.QuestionId == questionId);
+        await using var ctx = _factory.CreateDbContext();
+        var question = ctx.Questions.FirstOrDefault(q => q.QuestionId == questionId);
         if ( question == null)
         {
             result.Status = "Failed";
@@ -120,7 +141,7 @@ public class QuestionRepository : IQuestionRepository
         try
         {
             question.Priority = priority;
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {

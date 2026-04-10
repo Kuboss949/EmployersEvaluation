@@ -6,7 +6,7 @@
 
 main {
     flex: 1;
-    background: url("Assets/ocenaPracowniczav3.jpg") no-repeat bottom right fixed;
+    background: url("Assets/ocenaPracowniczav3.png") repeat-x bottom right fixed;
 }
 
 .sidebar {

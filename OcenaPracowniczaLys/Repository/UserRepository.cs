@@ -1,27 +1,48 @@
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using OcenaPracowniczaLys.Context;
 using OcenaPracowniczaLys.Data;
+using OcenaPracowniczaLys.Exceptions;
 using OcenaPracowniczaLys.Models;
 
 namespace OcenaPracowniczaLys.Repository;
 
 public class UserRepository : IUserRepository
 {
-    private AppDbContext _context;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public UserRepository(AppDbContext context)
-    {
-        _context = context;
-    }
+
+    public UserRepository(IDbContextFactory<AppDbContext> factory)
+        => _factory = factory;
     
     public async Task<List<User>> GetAllUsersAsync()
     {
-        return await _context.Users.ToListAsync();
+        try
+        {
+            await using var ctx = _factory.CreateDbContext();
+            return await ctx.Users.ToListAsync();
+        }
+        catch (DbException ex)
+        {
+            throw new DataUnavailableException(ex);
+        }
     }
 
     public async Task<List<User>> GetAllSupervisorsAsync()
     {
-        return await _context.Users.Where(u => u.RoleId != 2 && u.Enabled).OrderBy(u => u.FullName).ToListAsync();
+        try
+        {
+            await using var ctx = _factory.CreateDbContext();
+            return await ctx.Users
+                .Where(u => u.RoleId != 2 && u.Enabled)
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+        }
+        catch (DbException ex)
+        {
+            throw new DataUnavailableException(ex);
+        }
+        
     }
 
     public async Task<OperationResult> AddUserAsync(User user)
@@ -37,8 +58,9 @@ public class UserRepository : IUserRepository
 
         try
         {
-            _context.Users.Add(user);
-            int status = await _context.SaveChangesAsync();
+            await using var ctx = _factory.CreateDbContext();
+            ctx.Users.Add(user);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -64,7 +86,8 @@ public class UserRepository : IUserRepository
     {
         var result = new OperationResult();
         
-        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+        await using var ctx = _factory.CreateDbContext();
+        var user = ctx.Users.FirstOrDefault(u => u.UserId == userId);
         if (user == null)
         {
             result.Status = "Failed";
@@ -75,7 +98,7 @@ public class UserRepository : IUserRepository
         try
         {
             user.Enabled = !user.Enabled;
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -101,7 +124,8 @@ public class UserRepository : IUserRepository
     {
         var result = new OperationResult();
         
-        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+        await using var ctx = _factory.CreateDbContext();
+        var user = ctx.Users.FirstOrDefault(u => u.UserId == userId);
         if (user == null)
         {
             result.Status = "Failed";
@@ -112,7 +136,7 @@ public class UserRepository : IUserRepository
         try
         {
             user.Password = newPassword;
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -138,7 +162,8 @@ public class UserRepository : IUserRepository
     {
         var result = new OperationResult();
         
-        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+        await using var ctx = _factory.CreateDbContext();
+        var user = ctx.Users.FirstOrDefault(u => u.UserId == userId);
         if (user == null)
         {
             result.Status = "Failed";
@@ -149,7 +174,7 @@ public class UserRepository : IUserRepository
         try
         {
             user.ManagerId = newManagerId;
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {

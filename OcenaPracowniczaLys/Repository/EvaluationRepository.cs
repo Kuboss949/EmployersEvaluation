@@ -7,12 +7,11 @@ namespace OcenaPracowniczaLys.Repository;
 
 public class EvaluationRepository : IEvaluationRepository
 {
-    private readonly AppDbContext _context;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public EvaluationRepository(AppDbContext context)
-    {
-        _context = context;
-    }
+    public EvaluationRepository(IDbContextFactory<AppDbContext> factory)
+        => _factory = factory;
+    
     public async Task<OperationResult> AddEvaluationAsync(Evaluation data)
     {
         var result = new OperationResult();
@@ -26,8 +25,10 @@ public class EvaluationRepository : IEvaluationRepository
 
         try
         {
-            _context.Evaluations.Add(data);
-            int status = await _context.SaveChangesAsync();
+            await using var ctx = _factory.CreateDbContext();
+
+            ctx.Evaluations.Add(data);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -62,8 +63,10 @@ public class EvaluationRepository : IEvaluationRepository
 
         try
         {
-            _context.ManagerAnswers.Add(data);
-            int status = await _context.SaveChangesAsync();
+            await using var ctx = _factory.CreateDbContext();
+
+            ctx.ManagerAnswers.Add(data);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -87,7 +90,9 @@ public class EvaluationRepository : IEvaluationRepository
 
     public async Task<List<Evaluation>> GetAllEvaluationsAsync()
     {
-        return await _context.Evaluations
+        await using var ctx = _factory.CreateDbContext();
+
+        return await ctx.Evaluations
             .Include(e => e.EmployeeAnswers)
                 .ThenInclude(answer => answer.Question)
             .Include(e => e.Department)
@@ -99,7 +104,9 @@ public class EvaluationRepository : IEvaluationRepository
 
     public async Task<List<Evaluation>> GetAllDirectEvaluationsAsync(int UserId)
     {
-        return await _context.Evaluations
+        await using var ctx = _factory.CreateDbContext();
+
+        return await ctx.Evaluations
             .Include(e => e.EmployeeAnswers)
                 .ThenInclude(answer => answer.Question)
             .Include(e => e.Department)
@@ -111,8 +118,10 @@ public class EvaluationRepository : IEvaluationRepository
 
     public async Task<List<Evaluation>> GetAllIndirectEvaluationsAsync(int UserId)
     {
+        await using var ctx = _factory.CreateDbContext();
+
         var idList = await GetSubordinateIdsAsync(UserId);
-        return await _context.Evaluations
+        return await ctx.Evaluations
             .Include(e => e.EmployeeAnswers).ThenInclude(answer => answer.Question)
             .Include(e => e.Department)
             .Include(e=>e.ManagerAnswer)
@@ -123,7 +132,9 @@ public class EvaluationRepository : IEvaluationRepository
 
     public async Task<Evaluation?> GetEvaluationByIdAsync(int EvaluationId)
     {
-        return await _context.Evaluations
+        await using var ctx = _factory.CreateDbContext();
+
+        return await ctx.Evaluations
             .Include(e => e.EmployeeAnswers)
             .ThenInclude(answer => answer.Question)
             .Include(e => e.Department).FirstOrDefaultAsync(e => e.EvaluationId == EvaluationId);
@@ -131,7 +142,9 @@ public class EvaluationRepository : IEvaluationRepository
 
     public async Task<ManagerAnswer?> GetManagerAnswerByEvaluationIdAsync(int evaluationId)
     {
-        return await _context.ManagerAnswers
+        await using var ctx = _factory.CreateDbContext();
+
+        return await ctx.ManagerAnswers
             .Include(ma => ma.ManagerAnswersTexts)
             .FirstOrDefaultAsync(ma => ma.EvaluationId == evaluationId);
     }
@@ -149,8 +162,10 @@ public class EvaluationRepository : IEvaluationRepository
 
         try
         {
-            _context.ManagerAnswers.Update(data);
-            int status = await _context.SaveChangesAsync();
+            await using var ctx = _factory.CreateDbContext();
+
+            ctx.ManagerAnswers.Update(data);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -172,9 +187,11 @@ public class EvaluationRepository : IEvaluationRepository
         return result;
     }
 
-    public void RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts)
+    async public Task RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts)
     {
-        _context.ManagerAnswersTexts.RemoveRange(texts);
+        await using var ctx = _factory.CreateDbContext();
+
+        ctx.ManagerAnswersTexts.RemoveRange(texts);
     }
 
     public async Task<List<int>> GetEvaluationAnswerAuthorizedUsersAsync(int managerId)
@@ -189,7 +206,9 @@ public class EvaluationRepository : IEvaluationRepository
             var current = queue.Dequeue();
 
             // Pobrane tylko Id rodziców
-            int supervisorId = await _context.Users
+            await using var ctx = _factory.CreateDbContext();
+
+            int supervisorId = await ctx.Users
                 .Where(u => u.UserId == current)
                 .Select(u => u.ManagerId ?? -1)
                 .FirstOrDefaultAsync();
@@ -214,9 +233,10 @@ public class EvaluationRepository : IEvaluationRepository
         while (queue.Count > 0)
         {
             var current = queue.Dequeue();
+            await using var ctx = _factory.CreateDbContext();
 
             // Pobrane tylko Id potomków danego managera
-            var directReports = await _context.Users
+            var directReports = await ctx.Users
                 .Where(u => u.ManagerId == current)
                 .Select(u => u.UserId)
                 .ToListAsync();

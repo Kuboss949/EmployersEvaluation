@@ -26,7 +26,7 @@
             <tbody>
             @foreach (var q in Questions)
             {
-                <tr class = "@((bool)!q.Enabled ? "alert-danger" : "")">
+                <tr class = "@(!q.Enabled ? "alert-danger" : "")">
                     <th scope="row">@q.QuestionId</th>
                     <td>@q.MainDepartment.Name</td>
                     <td>@q.Priority</td>

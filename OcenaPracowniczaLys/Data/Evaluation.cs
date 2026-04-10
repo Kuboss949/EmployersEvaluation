@@ -9,7 +9,7 @@ public partial class Evaluation
 
     public string EmployeeName { get; set; } = null!;
 
-    public string? EmployeePosition { get; set; }
+    public string EmployeePosition { get; set; } = null!;
 
     public int DepartmentId { get; set; }
 

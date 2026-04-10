@@ -11,9 +11,9 @@ public partial class Question
 
     public string QuestionText { get; set; } = null!;
 
-    public bool? Enabled { get; set; }
+    public bool Enabled { get; set; }
 
-    public int? Priority { get; set; }
+    public int Priority { get; set; }
 
     public virtual ICollection<EmployeeAnswer> EmployeeAnswers { get; set; } = new List<EmployeeAnswer>();
 

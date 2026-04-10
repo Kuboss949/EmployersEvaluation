@@ -1,27 +1,50 @@
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using OcenaPracowniczaLys.Context;
 using OcenaPracowniczaLys.Data;
+using OcenaPracowniczaLys.Exceptions;
 using OcenaPracowniczaLys.Models;
+using Polly;
+using Polly.Registry;
 
 namespace OcenaPracowniczaLys.Repository;
 
 public class DepartmentRepository : IDepartmentRepository
 {
-    private AppDbContext _context;
+    private readonly IDbContextFactory<AppDbContext> _factory;
+    private readonly IAsyncPolicy _circuit; 
 
-    public DepartmentRepository(AppDbContext context)
+    public DepartmentRepository(IDbContextFactory<AppDbContext> f)
     {
-        _context = context;
+        _factory = f;
     }
     
     public async Task<List<Department>> GetAllDepartmentsAsync()
     {
-        return await _context.Departments.Include(d=>d.Manager).ToListAsync();
+        try
+        {
+            await using var ctx = _factory.CreateDbContext();
+            return await ctx.Departments
+                .Include(d => d.Manager)
+                .ToListAsync();
+        }
+        catch (DbException ex)
+        {
+            throw new DataUnavailableException(ex);
+        }
     }
-    
+
     public async Task<List<MainDepartment>> GetAllMainDepartmentsAsync()
     {
-        return await _context.MainDepartments.ToListAsync();
+        try
+        {
+            await using var ctx = _factory.CreateDbContext();
+            return await ctx.MainDepartments.ToListAsync();
+        }
+        catch (DbException ex)
+        {
+            throw new DataUnavailableException(ex);
+        }
     }
 
     public async Task<OperationResult> AddDepartmentAsync(Department department)
@@ -37,8 +60,9 @@ public class DepartmentRepository : IDepartmentRepository
 
         try
         {
-            _context.Departments.Add(department);
-            int status = await _context.SaveChangesAsync();
+            await using var ctx = _factory.CreateDbContext();
+            ctx.Departments.Add(department);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {
@@ -64,8 +88,9 @@ public class DepartmentRepository : IDepartmentRepository
     public async Task<OperationResult> ChangeDepartmentManagerAsync(int departmentId, int newManagerId)
     {
         var result = new OperationResult();
-        
-        var department = _context.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
+        await using var ctx = _factory.CreateDbContext();
+
+        var department = ctx.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
         if (department == null)
         {
             result.Status = "Failed";
@@ -77,7 +102,7 @@ public class DepartmentRepository : IDepartmentRepository
 
         try
         {
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
             if (status > 0)
             {
                 result.Status = "Success";
@@ -101,8 +126,9 @@ public class DepartmentRepository : IDepartmentRepository
     public async Task<OperationResult> ToggleEnableDepartmentAsync(int departmentId)
     {
         var result = new OperationResult();
-        
-        var department = _context.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
+        await using var ctx = _factory.CreateDbContext();
+
+        var department = ctx.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
         if (department == null)
         {
             result.Status = "Failed";
@@ -114,7 +140,7 @@ public class DepartmentRepository : IDepartmentRepository
 
         try
         {
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
             if (status > 0)
             {
                 result.Status = "Success";
@@ -137,8 +163,9 @@ public class DepartmentRepository : IDepartmentRepository
     public async Task<OperationResult> ToggleEnableMainDepartmentAsync(int departmentId)
     {
         var result = new OperationResult();
-        
-        var department = _context.MainDepartments.FirstOrDefault(d => d.MainDepartmentId == departmentId);
+        await using var ctx = _factory.CreateDbContext();
+
+        var department = ctx.MainDepartments.FirstOrDefault(d => d.MainDepartmentId == departmentId);
         if (department == null)
         {
             result.Status = "Failed";
@@ -150,7 +177,7 @@ public class DepartmentRepository : IDepartmentRepository
 
         try
         {
-            int status = await _context.SaveChangesAsync();
+            int status = await ctx.SaveChangesAsync();
             if (status > 0)
             {
                 result.Status = "Success";
@@ -181,11 +208,12 @@ public class DepartmentRepository : IDepartmentRepository
             result.Message = "Przekazano nieprawidłowy obiekt działu.";
             return result;
         }
+        await using var ctx = _factory.CreateDbContext();
 
         try
         {
-            _context.MainDepartments.Add(department);
-            int status = await _context.SaveChangesAsync();
+            ctx.MainDepartments.Add(department);
+            int status = await ctx.SaveChangesAsync();
 
             if (status > 0)
             {

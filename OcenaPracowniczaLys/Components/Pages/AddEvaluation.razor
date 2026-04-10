@@ -1,19 +1,28 @@
 @page "/dodaj-ocene"
 @using Microsoft.IdentityModel.Tokens
+@using OcenaPracowniczaLys.Exceptions
 @inject IUserService UserService
 @inject IEvaluationService EvaluationService
 @inject IDepartmentService DepartmentService
 @inject IQuestionService QuestionService
 @inject IToastService Toast
 
+<PageTitle>Dodaj ocenę</PageTitle>
 
-@if (_isLoading)
+@if (state == LoadState.Loading)
 {
     <div class="text-center mt-5">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Ładowanie...</span>
         </div>
         <p>Ładowanie danych, proszę czekać...</p>
+    </div>
+}
+else if (state == LoadState.Error)
+{
+    <div class="alert alert-danger m-3">
+        <p>@errorMessage</p>
+        <button class="btn btn-secondary" @onclick="LoadData">Spróbuj ponownie</button>
     </div>
 }
 else
@@ -110,6 +119,8 @@ else
 
 
 @code {
+    private LoadState state;
+    private string? errorMessage;
     private AddEvaluationRequest _request = new AddEvaluationRequest();
     private List<User> _supervisors = [];
     private List<Department> _departments = [];
@@ -118,16 +129,28 @@ else
     private List<Question> _questionsFiltered = [];
     private bool _isLoading = true;
 
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadData();
+    
+    private async Task LoadData()
     {
-        _supervisors = await UserService.GetAllSupervisorsAsync();
-        _departments = await DepartmentService.GetAllDepartmentsAsync();
-        _isLoading = false;
-        _questions = await QuestionService.GetEnabledQuestionsAsync();
-        _mainDepartments = await DepartmentService.GetAllMainDepartmentsAsync();
+        state = LoadState.Loading;
+        try
+        {
+            _supervisors = await UserService.GetAllSupervisorsAsync();
+            _departments = await DepartmentService.GetAllDepartmentsAsync();
+            _questions = await QuestionService.GetEnabledQuestionsAsync();
+            _mainDepartments = await DepartmentService.GetAllMainDepartmentsAsync();
 
+            state = LoadState.HasData;
+        }
+        catch (DataUnavailableException ex)
+        {
+            errorMessage = "Nie można pobrać danych. Spróbuj ponownie później.";
+            Toast.ShowError(errorMessage);
+            state = LoadState.Error;
+        }
     }
+    
 
     private void ChangeQuestionSet(ChangeEventArgs e)
     {
@@ -161,4 +184,11 @@ else
             Toast.ShowError(result.Message);
         
     }
+    private RenderFragment OnUnexpectedError(Exception ex) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "alert alert-warning m-3");
+        builder.AddContent(2, "Wystąpił nieoczekiwany błąd. Odśwież stronę.");
+        builder.CloseElement();
+    };
 }

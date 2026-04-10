@@ -1,19 +1,23 @@
 using Blazored.Modal;
 using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using OcenaPracowniczaLys;
 using OcenaPracowniczaLys.AuthenticationProvider;
 using OcenaPracowniczaLys.Components;
 using OcenaPracowniczaLys.Context;
 using OcenaPracowniczaLys.Repository;
 using OcenaPracowniczaLys.Services;
+using Polly;
+using Polly.Contrib.WaitAndRetry;    
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 
-builder.Services.AddDbContext<AppDbContext>();
+//builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddBlazoredModal();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -27,6 +31,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddBlazoredToast();
+builder.Services.AddDbContextFactory<AppDbContext>(
+    opt => opt.UseSqlServer(
+        cs => cs.EnableRetryOnFailure(maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)
+        )
+    );
+
+//builder.Services.AddResiliencyPolicies(builder.Configuration);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

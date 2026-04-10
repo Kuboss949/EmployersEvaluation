@@ -9,7 +9,7 @@ public partial class MainDepartment
 
     public string Name { get; set; } = null!;
 
-    public bool? Enabled { get; set; }
+    public bool Enabled { get; set; }
 
     public virtual ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
 

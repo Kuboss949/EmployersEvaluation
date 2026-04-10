@@ -3,6 +3,8 @@
 @inject IEvaluationService EvaluationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Nav
+
+<PageTitle>Odpowiedzi</PageTitle>
 <div class="container-fluid min-vh-100 d-flex">
     <div class="row w-100">
         <div class="col-md-3">
@@ -197,9 +199,7 @@
             _isOwner = authState.User.IsInRole("owner");
         }
 
-        _directAnswers = _isOwner 
-            ? [] 
-            : await EvaluationService.GetAllDirectEvaluationsAsync(_userId);
+        _directAnswers = await EvaluationService.GetAllDirectEvaluationsAsync(_userId);
         _indirectAnswers = _isOwner 
             ? await EvaluationService.GetAllEvaluationsAsync() 
             : await EvaluationService.GetAllIndirectEvaluationsAsync(_userId);

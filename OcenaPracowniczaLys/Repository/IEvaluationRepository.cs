@@ -13,6 +13,6 @@ public interface IEvaluationRepository
     Task<Evaluation?> GetEvaluationByIdAsync(int evaluationId);
     Task<ManagerAnswer?> GetManagerAnswerByEvaluationIdAsync(int evaluationId);
     Task<OperationResult> UpdateManagerAnswerAsync(ManagerAnswer data);
-    void RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts);
+    Task RemoveManagerAnswerTexts(IEnumerable<ManagerAnswersText> texts);
     Task<List<int>> GetEvaluationAnswerAuthorizedUsersAsync(int userId); 
 }

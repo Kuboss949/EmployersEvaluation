@@ -34,7 +34,7 @@
                     <td>@user.FullName</td>
                     <td>@user.Login</td>
                     <td>@user.Enabled</td>
-                    <td>@(user.ManagerId != null ? Users.FirstOrDefault(u=>u.UserId == user.ManagerId).FullName : "-")</td>
+                    <td>@(user.ManagerId != null ? Users.FirstOrDefault(u=>u.UserId == user.ManagerId)?.FullName : "-")</td>
                     <td class="text-center align-middle">
                         <button class="btn btn-danger" @onclick="@(() => ToggleEnableStatus(user.UserId))">
                             <i class="bi bi-power"></i>

@@ -35,14 +35,12 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=localhost;Database=ocena_lepsza_test_migaracji;User Id=sa;Password=test123;TrustServerCertificate=True;");
-
+        => optionsBuilder.UseSqlServer("Name=DefaultConnection");
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Department>(entity =>
         {
-            entity.HasKey(e => e.DepartmentId).HasName("PK__Departme__C223242262D06871");
+            entity.HasKey(e => e.DepartmentId).HasName("PK__Departme__C2232422A66AFB0A");
 
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
             entity.Property(e => e.Enabled)
@@ -55,12 +53,13 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Manager).WithMany(p => p.Departments)
                 .HasForeignKey(d => d.ManagerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Departments_Manager");
         });
 
         modelBuilder.Entity<EmployeeAnswer>(entity =>
         {
-            entity.HasKey(e => e.EmployeeAnswerId).HasName("PK__Employee__9278760EC47AB220");
+            entity.HasKey(e => e.EmployeeAnswerId).HasName("PK__Employee__9278760E41F1F272");
 
             entity.Property(e => e.EmployeeAnswerId).HasColumnName("employee_answer_id");
             entity.Property(e => e.AnswerText).HasColumnName("answer_text");
@@ -80,7 +79,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Evaluation>(entity =>
         {
-            entity.HasKey(e => e.EvaluationId).HasName("PK__Evaluati__827C592DAFB9AC71");
+            entity.HasKey(e => e.EvaluationId).HasName("PK__Evaluati__827C592D5DE629E4");
 
             entity.Property(e => e.EvaluationId).HasColumnName("evaluation_id");
             entity.Property(e => e.CreatedAt)
@@ -116,7 +115,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<MainDepartment>(entity =>
         {
-            entity.HasKey(e => e.MainDepartmentId).HasName("PK__MainDepa__F1F83E9A5CDEA549");
+            entity.HasKey(e => e.MainDepartmentId).HasName("PK__MainDepa__F1F83E9AB5E53B88");
 
             entity.Property(e => e.MainDepartmentId).HasColumnName("main_department_id");
             entity.Property(e => e.Enabled)
@@ -129,7 +128,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<ManagerAnswer>(entity =>
         {
-            entity.HasKey(e => e.ManagerAnswerId).HasName("PK__ManagerA__5B94A64B710564FF");
+            entity.HasKey(e => e.ManagerAnswerId).HasName("PK__ManagerA__5B94A64BC636953D");
 
             entity.HasIndex(e => e.EvaluationId, "UQ_ManagerAnswer_Evaluation").IsUnique();
 
@@ -166,7 +165,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__2EC21549D04AD0B0");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__2EC21549DE0183AB");
 
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
             entity.Property(e => e.Enabled)
@@ -188,7 +187,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__760965CC9CB6076A");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__760965CC9455BB21");
 
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.Name)
@@ -198,9 +197,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__B9BE370F266A9E10");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__B9BE370FF6EC86D7");
 
-            entity.HasIndex(e => e.Login, "UQ__Users__7838F272CCE74EC8").IsUnique();
+            entity.HasIndex(e => e.Login, "UQ__Users__7838F27292CAB6DD").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Enabled)

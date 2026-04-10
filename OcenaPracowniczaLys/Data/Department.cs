@@ -11,9 +11,9 @@ public partial class Department
 
     public bool Enabled { get; set; }
 
-    public int? ManagerId { get; set; }
+    public int ManagerId { get; set; }
 
     public virtual ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
 
-    public virtual User? Manager { get; set; }
+    public virtual User Manager { get; set; } = null!;
 }
