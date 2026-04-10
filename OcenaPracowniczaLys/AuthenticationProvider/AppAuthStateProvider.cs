@@ -14,7 +14,8 @@ public class AppAuthStateProvider : AuthenticationStateProvider
     private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
     private ClaimsPrincipal _user = null!;
-    
+    private Task<AuthenticationState>? _cachedState;
+
     private readonly IAuthService _authService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -29,26 +30,38 @@ public class AppAuthStateProvider : AuthenticationStateProvider
     {
         try
         {
-            if (_httpContextAccessor.HttpContext!.Request.Cookies.ContainsKey(BlazorConstants.AuthCookieName))
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            if (httpContext != null)
             {
-                var token = _httpContextAccessor.HttpContext.Request.Cookies[BlazorConstants.AuthCookieName];
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
-                var claims = new List<Claim>();
-                foreach (var claim in jsonToken!.Claims)
+                if (httpContext.Request.Cookies.ContainsKey(BlazorConstants.AuthCookieName))
                 {
-                    claims.Add(new Claim(claim.Type, claim.Value));
+                    var token = httpContext.Request.Cookies[BlazorConstants.AuthCookieName];
+                    var handler = new JwtSecurityTokenHandler();
+                    var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+                    var claims = new List<Claim>();
+                    foreach (var claim in jsonToken!.Claims)
+                    {
+                        claims.Add(new Claim(claim.Type, claim.Value));
+                    }
+
+                    var claimsIdentity = new ClaimsIdentity(claims, "jwt");
+                    var user = new ClaimsPrincipal(claimsIdentity);
+                    _cachedState = Task.FromResult(new AuthenticationState(user));
+                    return _cachedState;
                 }
 
-                var claimsIdentity = new ClaimsIdentity(claims, "jwt");
-                var user = new ClaimsPrincipal(claimsIdentity);
-                return Task.FromResult(new AuthenticationState(user));
+                // HttpContext dostępny, ale brak ciasteczka – użytkownik wylogowany
+                _cachedState = null;
+                return Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
             }
-            return Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
+
+            // HttpContext niedostępny (faza SignalR) – zwróć zapamiętany stan
+            return _cachedState ?? Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
         }
         catch (Exception)
         {
-            return Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
+            return _cachedState ?? Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
         }
     }
 
@@ -68,6 +81,7 @@ public class AppAuthStateProvider : AuthenticationStateProvider
 
     public void MarkUserAsLoggedOut()
     {
+        _cachedState = null;
         _user = _anonymous;
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
